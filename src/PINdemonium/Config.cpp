@@ -196,7 +196,6 @@ void Config::loadJson(string config_path){
 	yara_exe_path = root["yara_exe_path"].asString();
 	yara_rules_path  = root["yara_rules_path"].asString();
 
-	dep_scylla_dumper_path = dependecies_path + "Scylla\\ScyllaDumper.exe";
 	dep_scylla_wrapper_path = dependecies_path + "Scylla\\ScyllaWrapper.dll";
 	//MYINFO("Load Config %s  %s",PIN_DIRECTORY_PATH_OUTPUT.c_str(),PIN_DIRECTORY_PATH_DEP.c_str());
 }
