@@ -12,7 +12,7 @@ namespace W{
 #include "Config.h"
 
 //Scylla Wrapper defined constants
-#define SCYLLA_ERROR_FILE_FROM_PID -4
+#define d_ERROR_FILE_FROM_PID -4
 #define SCYLLA_ERROR_DUMP -3
 #define SCYLLA_ERROR_IAT_NOT_FOUND -2
 #define SCYLLA_ERROR_IAT_NOT_FIXED -1
