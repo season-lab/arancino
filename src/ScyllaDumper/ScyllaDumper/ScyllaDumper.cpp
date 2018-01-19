@@ -14,30 +14,13 @@
 #define SCYLLA_ERROR_IAT_NOT_FIXED -1
 #define SCYLLA_SUCCESS_FIX 0
 
-#define USE_OLD_SCYLLAWRAPPER
-#ifndef USE_OLD_SCYLLAWRAPPER
-#define SCYLLA_DUMPROCESSW	scylla_dumpProcessW
-#define SCYLLA_IATSEARCH	scylla_iatSearch
-#define SCYLLA_IATFIXAUTOW	scylla_iatFixAutoW
-extern "C" __declspec(dllimport) BOOL scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult);
-extern "C" __declspec(dllimport) int scylla_iatSearch(DWORD dwProcessId, DWORD_PTR * iatStart, DWORD * iatSize, DWORD_PTR searchStart, BOOL advancedSearch);
-extern "C" __declspec(dllimport) int scylla_iatFixAutoW(DWORD_PTR iatAddr, DWORD iatSize, DWORD dwProcessId, const WCHAR * dumpFile, const WCHAR * iatFixFile);
-#else
-#define SCYLLA_DUMPROCESSW	ScyllaDumpProcessW
-#define SCYLLA_IATSEARCH	ScyllaIatSearch
-#define SCYLLA_IATFIXAUTOW	ScyllaIatFixAutoW
-#endif
-
-//#endif
 
 UINT32 IATAutoFix(DWORD pid, DWORD_PTR oep, WCHAR *outputFile, WCHAR* tmpDumpFile, DWORD call_plugin_flag, WCHAR *plugin_full_path, WCHAR *reconstructed_imports_file);
 BOOL GetFilePathFromPID(DWORD dwProcessId, WCHAR *filename);
 DWORD_PTR GetExeModuleBase(DWORD dwProcessId);
 
 
-
 HMODULE hScylla = 0;
-
 
 //
 // arg 1 : Pid
@@ -112,7 +95,7 @@ UINT32 IATAutoFix(DWORD pid, DWORD_PTR oep, WCHAR *outputFile, WCHAR *tmpDumpFil
 	
 	//INFO("Original Exe Path: %S",originalExe);
 		
-	success = SCYLLA_DUMPROCESSW(pid,originalExe,hMod,oep,tmpDumpFile);
+	success = ScyllaDumpProcessW(pid,originalExe,hMod,oep,tmpDumpFile);
 	if(!success){
 		INFO("[SCYLLA DUMP] Error Dumping  Pid: %d, FileToDump: %S, Hmod: %X, oep: %X, output: %S ",pid,originalExe,hMod,oep,tmpDumpFile);
 		return SCYLLA_ERROR_DUMP;
@@ -123,7 +106,7 @@ UINT32 IATAutoFix(DWORD pid, DWORD_PTR oep, WCHAR *outputFile, WCHAR *tmpDumpFil
 	INFO("[SCYLLA SEARCH] (1) Trying with the advanced IAT search\n");
 	//Searching the IAT
 	int basic_iat_search_error = 0;
-	int adv_iat_search_error = SCYLLA_IATSEARCH(pid, &iatStart, &iatSize, oep, TRUE);
+	int adv_iat_search_error = ScyllaIatSearch(pid, &iatStart, &iatSize, oep, TRUE);
 	int iat_fix_error = 0;
 	//check if ScyllaIATSearch failed and if the result IAT address is readable	
 	if(adv_iat_search_error || !isMemoryReadable(pid, (void *) iatStart, iatSize)){
@@ -136,7 +119,7 @@ UINT32 IATAutoFix(DWORD pid, DWORD_PTR oep, WCHAR *outputFile, WCHAR *tmpDumpFil
 		}
 		INFO("[SCYLLA SEARCH] (2) Trying basic IAT search");
 		//Trying  Basic IAT search
-		basic_iat_search_error = SCYLLA_IATSEARCH(pid, &iatStart, &iatSize, oep, FALSE);
+		basic_iat_search_error = ScyllaIatSearch(pid, &iatStart, &iatSize, oep, FALSE);
 		if(basic_iat_search_error || !isMemoryReadable(pid, (void *) iatStart,iatSize)){
 			if(basic_iat_search_error){  
 				ERRORE("[SCYLLA BASIC SEARCH] error %d\n",basic_iat_search_error); 
@@ -149,12 +132,12 @@ UINT32 IATAutoFix(DWORD pid, DWORD_PTR oep, WCHAR *outputFile, WCHAR *tmpDumpFil
 	}
 	INFO("[SCYLLA SEARCH] iat_start : %08x\t iat_size : %08x\t pid : %d\n", iatStart,iatSize,pid,outputFile);	
 	//Fixing the IAT
-	iat_fix_error = SCYLLA_IATFIXAUTOW(iatStart,iatSize,pid,tmpDumpFile,outputFile, oep, call_plugin_flag, plugin_full_path,reconstructed_imports_file);
+	iat_fix_error = ScyllaIatFixAutoW(iatStart,iatSize,pid,tmpDumpFile,outputFile, oep, call_plugin_flag, plugin_full_path,reconstructed_imports_file);
 	if(iat_fix_error){
 		INFO("[SCYLLA FIX] error %d\n",iat_fix_error);
 		INFO("[SCYLLA SEARCH] Trying basic IAT search");
 		//Trying  Basic IAT search
-		basic_iat_search_error = SCYLLA_IATSEARCH(pid, &iatStart, &iatSize, oep, FALSE);
+		basic_iat_search_error = ScyllaIatSearch(pid, &iatStart, &iatSize, oep, FALSE);
 		if(basic_iat_search_error || !isMemoryReadable(pid, (void *) iatStart,iatSize)){
 			if(basic_iat_search_error){  
 				ERRORE("[SCYLLA BASIC SEARCH] error %d\n",basic_iat_search_error); 

@@ -391,7 +391,7 @@ call_plugin_flag: flag to activate the plugin to fix the IAT
 plugin_full_path: path of the plugin to fix the IAT (compulsory when call_plugin_flag is true)
 reconstructed_imports_file: path to file which will contains the list of reconstructed imports
 */
-int WINAPI ScyllaIatFixAutoW(DWORD_PTR iatAddr, DWORD iatSize, DWORD dwProcessId, const WCHAR * dumpFile, const WCHAR * iatFixedFile, unsigned int eip,  DWORD call_plugin_flag, const WCHAR * plugin_full_path, const WCHAR *reconstructed_imports_file)
+int WINAPI ScyllaIatFixAutoW(DWORD_PTR iatAddr, DWORD iatSize, DWORD dwProcessId, const WCHAR * dumpFile, const WCHAR * iatFixedFile, DWORD_PTR eip,  DWORD call_plugin_flag, const WCHAR * plugin_full_path, const WCHAR *reconstructed_imports_file)
 {
 	ApiReader apiReader;
 	ProcessLister processLister;
@@ -446,7 +446,7 @@ int WINAPI ScyllaIatFixAutoW(DWORD_PTR iatAddr, DWORD iatSize, DWORD dwProcessId
 			addUnresolvedImports(unresolvedImport, moduleList);
 			
 			// --------------------- LOAD AND CALL THE PLUGIN --------------------- //
-			typedef UINT32 (* def_runPlugin)(static HANDLE hProcess, PUNRESOLVED_IMPORT unresolvedImport, unsigned int eip);
+			typedef UINT32 (* def_runPlugin)(HANDLE hProcess, PUNRESOLVED_IMPORT unresolvedImport, DWORD_PTR eip); // why static for 1st arg?
 			//load the dll
 			HMODULE pluginDll = 0;
 			LPCWSTR path = plugin_full_path;

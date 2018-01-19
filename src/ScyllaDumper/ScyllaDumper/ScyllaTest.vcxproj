@@ -60,9 +60,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="debug.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="stdafx.h" />
