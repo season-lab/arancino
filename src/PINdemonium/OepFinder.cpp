@@ -219,7 +219,7 @@ BOOL OepFinder::analysis(WriteInterval* item, INS ins, ADDRINT prev_ip, ADDRINT 
 	MYINFO("CURRENT WRITE SET SIZE : %d\t START : 0x%08x\t END : 0x%08x\t BROKEN-FLAG : %d", (item->getAddrEnd() - item->getAddrBegin()), item->getAddrBegin(), item->getAddrEnd(), item->getBrokenFlag());
 
 	//write the heuristic results on ile
-	return OEPFINDER_HEURISTIC_FAIL;
+	return OEPFINDER_HEURISTIC_FAIL; /* TODO: type seems to be wrong */
 }
 
 UINT32 OepFinder::DumpAndFixIAT(ADDRINT curEip){

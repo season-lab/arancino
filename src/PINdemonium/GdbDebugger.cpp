@@ -92,7 +92,7 @@ void GdbDebugger::CreateChildProcess()
 // Read from a file and write its contents to the pipe for the child's STDIN.
 // Stop when there is no more data. 
 void GdbDebugger::WriteToPipe(char* cmd) { 
-   DWORD dwRead = strlen(cmd), dwWritten; 
+   DWORD dwRead = (DWORD)strlen(cmd), dwWritten; 
    BOOL bSuccess = FALSE;       
    bSuccess = WriteFile(g_hChildStd_IN_Wr, cmd, dwRead, &dwWritten, NULL);
 } 
@@ -102,11 +102,12 @@ void GdbDebugger::WriteToPipe(char* cmd) {
 // and write to the parent process's pipe for STDOUT. 
 // Stop when there is no more data. 
 void GdbDebugger::ReadFromPipe(void){ 
-   DWORD dwRead, dwWritten; 
+   DWORD dwRead; //, dwWritten; 
    CHAR chBuf[BUFSIZE]; 
    BOOL bSuccess = FALSE;
    HANDLE hParentStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-   ReadFile( g_hChildStd_OUT_Rd, chBuf, BUFSIZE, &dwRead, NULL); 
+   ReadFile( g_hChildStd_OUT_Rd, chBuf, BUFSIZE, &dwRead, NULL);
+   /* TODO: code for writing to hParentStdOut is missing */
 } 
 
 

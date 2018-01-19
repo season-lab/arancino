@@ -22,7 +22,7 @@ FakeReadHandler::~FakeReadHandler(void)
 
 ADDRINT FakeReadHandler::ntdllFuncPatch(ADDRINT curReadAddr, ADDRINT ntdllFuncAddr){
 	string patch = ntdllHooksAddrPatch.at(ntdllFuncAddr);
-	int delta = curReadAddr - ntdllFuncAddr;
+	ADDRINT delta = curReadAddr - ntdllFuncAddr;
 	curFakeMemory = patch.substr(delta,string::npos);
 	ADDRINT patchAddr = (ADDRINT)&curFakeMemory;
 	MYINFO("read at %08x containig %02x  Patched address %08x with string %02x \n",curReadAddr, *(char *)curReadAddr,patchAddr,*(char *)curFakeMemory.c_str());
@@ -137,7 +137,7 @@ ADDRINT FakeReadHandler::InterruptTimePatch(ADDRINT curReadAddr, ADDRINT addr){
 	UINT32 current_divisor = Config::INTERRUPT_TIME_DIVISOR;
 	UINT64 orig = ( (tmp_high_1_part << 32) + low_part );
 	divided_time = orig / Config::INTERRUPT_TIME_DIVISOR;
-	low_part_new_value = divided_time; 
+	low_part_new_value = (UINT32)divided_time; // UINT32 for low part
 	high_1_part_new_value = divided_time >> 32;
 	high_2_part_new_value = high_1_part_new_value;
 	if(curReadAddr == KUSER_SHARED_DATA_ADDRESS + LOW_PART_INTERRUPT_TIME_OFFSET){
@@ -171,7 +171,7 @@ ADDRINT FakeReadHandler::SystemTimePatch(ADDRINT curReadAddr, ADDRINT addr){
 	UINT32 current_divisor = Config::SYSTEM_TIME_DIVISOR;
 	UINT64 orig = ( (tmp_high_1_part << 32) + low_part );
 	divided_time = orig / Config::SYSTEM_TIME_DIVISOR;
-	low_part_new_value = divided_time; 
+	low_part_new_value = (UINT32)divided_time; // UINT32 for low part
 	high_1_part_new_value = divided_time >> 32;
 	high_2_part_new_value = high_1_part_new_value;
 	if(curReadAddr == KUSER_SHARED_DATA_ADDRESS + LOW_PART_SYSTEM_TIME_OFFSET){
@@ -190,13 +190,13 @@ ADDRINT FakeReadHandler::SystemTimePatch(ADDRINT curReadAddr, ADDRINT addr){
 
 BOOL getMemoryRange(ADDRINT address, MemoryRange& range){	
 	W::MEMORY_BASIC_INFORMATION mbi;
-	int numBytes = W::VirtualQuery((W::LPCVOID)address, &mbi, sizeof(mbi));
+	W::SIZE_T numBytes = W::VirtualQuery((W::LPCVOID)address, &mbi, sizeof(mbi));
 	if(numBytes == 0){
 		MYERRORE("VirtualQuery failed");
 		return FALSE;
 	}
-	int start =  (int)mbi.BaseAddress;
-	int end = (int)mbi.BaseAddress+ mbi.RegionSize;
+	ADDRINT start =  (int)mbi.BaseAddress;
+	ADDRINT end = (int)mbi.BaseAddress+ mbi.RegionSize;
 	//get the stack base address by searching the highest address in the allocated memory containing the stack Address
 	if((mbi.State == MEM_COMMIT || mbi.Type == MEM_MAPPED || mbi.Type == MEM_IMAGE ||  mbi.Type == MEM_PRIVATE) &&
 		start <=address && address <= end){

@@ -45,7 +45,7 @@ void ProcInfo::setPopadFlag(BOOL flag){
 void ProcInfo::setProcName(string name){
 	this->full_proc_name = name;
 	//get the starting position of the last element of the path (the exe name)
-	int pos_exe_name = name.find_last_of("\\");
+	size_t pos_exe_name = name.find_last_of("\\");
 	string exe_name = name.substr(pos_exe_name + 1);
 	//get the name from the last occurrence of / till the end of the string minus the file extension
 	exe_name = Helper::replaceString(exe_name, " ", "");
@@ -416,7 +416,7 @@ VOID ProcInfo::addThreadStackAddress(ADDRINT addr){
 	//hasn't been already initialized
 	MemoryRange stack;
 	W::MEMORY_BASIC_INFORMATION mbi;
-	int numBytes = W::VirtualQuery((W::LPCVOID)addr, &mbi, sizeof(mbi));
+	W::SIZE_T numBytes = W::VirtualQuery((W::LPCVOID)addr, &mbi, sizeof(mbi));
 	//get the stack base address by searching the highest address in the allocated memory containing the stack Address
 	if(mbi.State == MEM_COMMIT || mbi.Type == MEM_PRIVATE ){
 		stack.EndAddress = (int)mbi.BaseAddress+ mbi.RegionSize;
@@ -443,7 +443,7 @@ return TRUE if the address belongs to a memory mapped area otherwise return FALS
 **/
 BOOL ProcInfo::getMemoryRange(ADDRINT address, MemoryRange& range){		
 	W::MEMORY_BASIC_INFORMATION mbi;
-	int numBytes = W::VirtualQuery((W::LPCVOID)address, &mbi, sizeof(mbi));
+	W::SIZE_T numBytes = W::VirtualQuery((W::LPCVOID)address, &mbi, sizeof(mbi));
 	if(numBytes == 0){
 		MYERRORE("VirtualQuery failed");
 		return FALSE;
@@ -648,7 +648,7 @@ BOOL ProcInfo::addProcessHeapsAndCheckAddress(ADDRINT eip){
 
 	W::GetProcessHeaps(NumberOfHeaps,aHeaps);
 	//Adding the memory range containing the ProcessHeaps to the  genericMemoryRanges
-	 for (int i = 0; i < NumberOfHeaps; ++i) {
+	 for (size_t i = 0; i < NumberOfHeaps; ++i) {
 		MemoryRange processHeap;
 		if(getMemoryRange((ADDRINT) aHeaps[i],processHeap)){
 			genericMemoryRanges.push_back(processHeap);

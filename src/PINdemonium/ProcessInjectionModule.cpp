@@ -26,10 +26,13 @@ BOOL ProcessInjectionModule::isInsideCreateProcess(){
 		remoteWriteInsideCreateProcess++;
 		return true;
 	}
-	else if(remoteWriteInsideCreateProcess & remoteWriteInsideCreateProcess ==3 ){
+	/* TODO: code was if (remoteWriteInsideCreateProcess & remoteWriteInsideCreateProcess ==3)
+	 * Not really sure about the meaning of 3 here. The original code would check r==3 first,
+	 * then &-ing the result with r would yield 1 iff r==3, and 0 otherwise. Fluke? :-) */
+	else if(remoteWriteInsideCreateProcess == 3 ){
 		MYINFO("2. InsideCreateProcess %d   remoteWrite %d",insideCreateProcess,remoteWriteInsideCreateProcess);
 		remoteWriteInsideCreateProcess = 0;
-		insideCreateProcess =false;
+		insideCreateProcess = false;
 		return false;
 	}
 	else{
@@ -87,7 +90,7 @@ return a string containing the path of the dumped memory
 string ProcessInjectionModule::DumpRemoteWriteInterval(WriteInterval* item,W::DWORD pid){
 	//Dump remote process memory for each item inside the  currentWriteSet
 	W::SIZE_T dwBytesRead = 0;
-	UINT32 size =  item->getAddrEnd()-item->getAddrBegin();
+	UINT32 size =  (UINT32)(item->getAddrEnd()-item->getAddrBegin());
 	unsigned char * buffer = (unsigned char *)malloc(size);
 	W::HANDLE process = W::OpenProcess(PROCESS_VM_READ,false,pid);
 	if(W::ReadProcessMemory(process,(W::LPVOID)item->getAddrBegin(),buffer,  size,&dwBytesRead)){

@@ -19,7 +19,7 @@ UINT32 HeapModule::checkHeapWxorX(WriteInterval* item, ADDRINT curEip, int dumpA
 	if( item->getHeapFlag() && dumpAndFixResult != SCYLLA_ERROR_FILE_FROM_PID  && dumpAndFixResult != SCYLLA_ERROR_DUMP ){
 		MYPRINT("[INFO][OepFinder.cpp] - EIP ON THE HEAP - DUMPING THE HEAP-ZONE BEGIN 0x%08x | END 0x%08x", item->getAddrBegin(),item->getAddrEnd());
 		unsigned char * Buffer;
-		UINT32 size_write_set = item->getAddrEnd() - item->getAddrBegin();
+		UINT32 size_write_set = (UINT32)(item->getAddrEnd() - item->getAddrBegin());
 		//prepare the buffer to copy inside the stuff into the heap section to dump 		  
 		Buffer = (unsigned char *)malloc( size_write_set );
 		// copy the heap zone into the buffer 
@@ -44,7 +44,7 @@ UINT32 HeapModule::checkHeapWxorX(WriteInterval* item, ADDRINT curEip, int dumpA
 		std::wstring widestr = std::wstring(dump_path.begin(), dump_path.end());
 		const wchar_t* widecstr = widestr.c_str();
 		// calculate where the program jump in the heap ( i.e. 0 perfectly at the begin of the heapzone ) 
-		UINT32 offset = curEip - item->getAddrBegin();
+		UINT32 offset = (UINT32)(curEip - item->getAddrBegin()); /* TODO: UINT32 is good? I guess so */
 		//REMEMEBER TO LOAD AND UNLOAD SCYLLAWRAPPER!
 		scylla_wrapper->loadScyllaLibary();
 		scylla_wrapper->ScyllaWrapAddSection(widecstr, ".heap" ,size_write_set , offset , Buffer);

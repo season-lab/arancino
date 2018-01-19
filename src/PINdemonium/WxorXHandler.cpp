@@ -95,7 +95,7 @@ VOID WxorXHandler::_writeSetManager( ADDRINT start_addr, UINT32 size,std::vector
 	bool isheap = ProcInfo::getInstance()->searchHeapMap(start_addr);
 
 	//calculate the end address of the write
-	UINT32 end_addr = start_addr + size;
+	UINT32 end_addr = (UINT32)(start_addr + size);
 	//iterate through our structure in order to find if we have to update one of our WriteInterval
 	//We can't use an iterator because, after a certain amount of writeinterval, it will broke
 	for(int i = 0; i < currentWriteSet.size(); i++){

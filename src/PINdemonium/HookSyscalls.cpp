@@ -7,7 +7,7 @@ static int testing = 0;
 
 void HookSyscalls::syscallEntry(THREADID thread_id, CONTEXT *ctx, SYSCALL_STANDARD std, void *v){
 	//get the syscall number
-	unsigned long syscall_number = PIN_GetSyscallNumber(ctx, std);
+	ADDRINT syscall_number = PIN_GetSyscallNumber(ctx, std);
 	// int 0x2e probably leaves ctx in a corrupted state and we have an undefined behavior here, 
 	// the syscall_number will result in a 0 and this isn't correct, the crash is inside the function PIN_GetSyscallArguments.
 	// According to PIN documentation: Applying PIN_GetSyscallArguments() to an inappropriate context results in undefined behavior and even may cause 
