@@ -1,5 +1,10 @@
 #include "Config.h"
 
+// rely on the preprocessor
+#define	STRINGIFY(x)	#x
+#define	TOSTRING(x)		STRINGIFY(x)
+#define	PIN_FOLDER		TOSTRING(_PIN_FOLDER)
+
 //constanth path and variable for our logging system
 
 //Tuning Flags
@@ -28,7 +33,9 @@ Config* Config::instance = 0;
 Config* Config::getInstance()
 {
 	if (instance == 0){
-		instance = new Config("C:\\pin\\PINdemoniumDependencies\\config.json");
+		// TODO remove this once validated
+		cerr << "Path to JSON config file: " << PIN_FOLDER "\\PINdemoniumDependencies\\config.json" << endl;
+		instance = new Config(PIN_FOLDER "\\PINdemoniumDependencies\\config.json");
 	}
 	return instance;
 }

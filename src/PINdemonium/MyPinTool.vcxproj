@@ -24,7 +24,7 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="Pin-config.props" />
+    <Import Project="..\Locals.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
@@ -47,7 +47,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(PinFolder)\source\include\pin;$(PinFolder)\source\include\pin\gen;$(PinFolder)\source\tools\InstLib;$(PinFolder)\extras\components\include\;$(PinFolder)\extras\xed-intel64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>TARGET_IA32E;HOST_IA32E;TARGET_WINDOWS;BIGARRAY_MULTIPLIER=1;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;WIN32</PreprocessorDefinitions>
+      <PreprocessorDefinitions>TARGET_IA32E;HOST_IA32E;TARGET_WINDOWS;BIGARRAY_MULTIPLIER=1;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;WIN32;_PIN_FOLDER="$(PinFolder)"</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>
       </ExceptionHandling>
