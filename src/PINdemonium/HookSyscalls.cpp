@@ -1,5 +1,5 @@
 #include "HookSyscalls.h"
-
+#include "porting.h"
 
 //----------------------------- SYSCALL HOOKS -----------------------------//
 
@@ -88,7 +88,7 @@ void HookSyscalls::NtAllocateVirtualMemoryHook(syscall_t *sc , CONTEXT *ctx , SY
     hz.end = region_size+heap_address;
 	hz.version = 0; // version 0 of this heap
 
-	std::string heap_key =  std::to_string((_ULonglong)hz.begin) + std::to_string((_ULonglong)hz.end);
+	std::string heap_key =  to_string((unsigned long long)hz.begin) + to_string((unsigned long long)hz.end); /* DCD: _ULonglong */
 
 	std::string hz_md5 = md5(heap_key);
 

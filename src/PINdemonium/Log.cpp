@@ -1,3 +1,4 @@
+/* TODO: this looks like a leftover */
 #include "Log.h"
 
 //constanth path and variable for our logging system

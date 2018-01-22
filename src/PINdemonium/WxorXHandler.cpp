@@ -1,4 +1,5 @@
 #include "WxorXHandler.h"
+#include "porting.h"
 
 
 WxorXHandler* WxorXHandler::instance = 0;
@@ -33,14 +34,15 @@ BOOL WxorXHandler::isWriteINS(INS ins){
 // - Calculate the target of the write (end_addr)
 // - Update an existing WriteInterval / create a new one
 VOID WxorXHandler::writeSetManager(ADDRINT start_addr, UINT32 size){
-	std::vector<WriteInterval> &currentWriteSet = this->WriteSetContainer.at(this->pid);
+	/* DCD: this->WriteSetContainer.at(this->pid); */
+	std::vector<WriteInterval> &currentWriteSet = map_at(this->WriteSetContainer, this->pid);
 	this->_writeSetManager(start_addr,size,currentWriteSet);
 	
 }
 
 //return the WriteItem index inside our vector that broke the W xor X index
 WriteInterval* WxorXHandler::getWxorXinterval(ADDRINT ip){
-	std::vector<WriteInterval> &currentWriteSet = this->WriteSetContainer.at(this->pid);
+	std::vector<WriteInterval> &currentWriteSet = map_at(this->WriteSetContainer, this->pid);
 	return this->_getWxorXinterval(ip,currentWriteSet);	
 	
 }
@@ -67,7 +69,7 @@ std::vector<WriteInterval>& WxorXHandler::getWxorXintervalInjected(W::DWORD pid)
 
 
 VOID WxorXHandler::incrementCurrJMPNumber(int writeItemIndex){
-	std::vector<WriteInterval> &currentWriteSet = this->WriteSetContainer.at(this->pid);
+	std::vector<WriteInterval> &currentWriteSet = map_at(WriteSetContainer, this->pid);
 	currentWriteSet[writeItemIndex].incrementCurrNumberJMP();
 }
 
@@ -81,7 +83,7 @@ VOID WxorXHandler::clearWriteSet(W::DWORD pid){
 }
 
 VOID WxorXHandler::displayWriteSet(W::DWORD pid){	
-	std::vector<WriteInterval> &currentWriteSet = this->WriteSetContainer.at(pid);
+	std::vector<WriteInterval> &currentWriteSet = map_at(WriteSetContainer, pid);
 	for(unsigned index=0; index <  currentWriteSet.size(); index++) {
 		MYINFO("WriteInterval number %u  start %08x end %08x",index,currentWriteSet.at(index).getAddrBegin(),currentWriteSet.at(index).getAddrEnd());
 	}

@@ -96,7 +96,7 @@ float ProcInfo::getInitialEntropy(){
 	return this->InitialEntropy;
 }
 
-std::unordered_set<ADDRINT> ProcInfo::getJmpBlacklist(){
+std::set<ADDRINT> ProcInfo::getJmpBlacklist(){ /* DCD: unordered_set */
 	return this->addr_jmp_blacklist;
 }
 

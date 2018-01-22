@@ -46,8 +46,8 @@
       <AdditionalOptions>/EHs- /EHa- %(AdditionalOptions)</AdditionalOptions>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(PinFolder)\source\include\pin;$(PinFolder)\source\include\pin\gen;$(PinFolder)\source\tools\InstLib;$(PinFolder)\extras\components\include\;$(PinFolder)\extras\xed-intel64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>TARGET_IA32E;HOST_IA32E;TARGET_WINDOWS;BIGARRAY_MULTIPLIER=1;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;WIN32;_PIN_FOLDER="$(PinFolder)"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(PinFolder)\source\include\pin;$(PinFolder)\source\include\pin\gen;$(PinFolder)\extras\stlport\include;$(PinFolder)\extras;$(PinFolder)\extras\libstdc++\include;$(PinFolder)\extras\crt\include;$(PinFolder)\extras\crt;$(PinFolder)\extras\crt\include\arch-x86_64;$(PinFolder)\extras\components\include;$(PinFolder)\extras\crt\include\kernel\uapi;$(PinFolder)\extras\crt\include\kernel\uapi\asm-x86;$(PinFolder)\extras\xed-intel64\include\xed;$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>TARGET_IA32E;__LP64__;HOST_IA32E;__PIN__=1;PIN_CRT=1;TARGET_WINDOWS;BIGARRAY_MULTIPLIER=1;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;WIN32;_WINDOWS_H_PATH_=$(WindowsSdkDir)\Include;_PIN_FOLDER="$(PinFolder)"</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>
       </ExceptionHandling>
@@ -61,7 +61,9 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>
       </DebugInformationFormat>
-      <DisableSpecificWarnings>4530;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4005;4530;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ForcedIncludeFiles>include/msvc_compat.h</ForcedIncludeFiles>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <AdditionalOptions>/export:main %(AdditionalOptions)</AdditionalOptions>
@@ -85,12 +87,15 @@
     <ClCompile Include="FakeReadHandler.cpp" />
     <ClCompile Include="FakeWriteHandler.cpp" />
     <ClCompile Include="GdbDebugger.cpp" />
-    <ClCompile Include="HeapModule.cpp" />
+    <ClCompile Include="HeapModule.cpp">
+      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ShowIncludes>
+    </ClCompile>
     <ClCompile Include="Helper.cpp" />
     <ClCompile Include="Heuristics.cpp" />
     <ClCompile Include="HookFunctions.cpp" />
     <ClCompile Include="HookSyscalls.cpp" />
     <ClCompile Include="jsoncpp.cpp" />
+    <ClCompile Include="Log.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="PatternMatchModule.cpp" />
     <ClCompile Include="PINshield.cpp" />
@@ -133,10 +138,12 @@
     <ClInclude Include="HookFunctions.h" />
     <ClInclude Include="HookSyscalls.h" />
     <ClInclude Include="json.h" />
+    <ClInclude Include="Log.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="PatternMatchModule.h" />
     <ClInclude Include="PINshield.h" />
     <ClInclude Include="PolymorphicCodeHandlerModule.h" />
+    <ClInclude Include="porting.h" />
     <ClInclude Include="ProcessInjectionModule.h" />
     <ClInclude Include="ProcInfo.h" />
     <ClInclude Include="Heuristics.h" />

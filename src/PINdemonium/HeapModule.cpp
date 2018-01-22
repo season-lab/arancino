@@ -1,6 +1,5 @@
 #include "HeapModule.h"
 
-
 HeapModule* HeapModule::instance = 0;
 
 HeapModule::HeapModule(void){
@@ -70,7 +69,7 @@ VOID HeapModule::saveHeapZones(std::map<std::string,HeapZone> hzs, std::map<std:
 	Config *config = Config::getInstance();
 
 	std::string heap_map_path = heaps_dir + "\\" +  "heap_map.txt";
-	std::ofstream heap_map_file(heap_map_path);
+	std::ofstream heap_map_file(heap_map_path.c_str());
 
 	for (std::map<std::string,HeapZone>::iterator it=hzs.begin(); it!=hzs.end(); ++it){	
 		HeapZone hz = it->second;
@@ -106,7 +105,7 @@ std::string HeapModule::dumpHZ(HeapZone hz, char * data, std::string hz_md5){
 
 	// dump of the heap inside this folder 
 	std::string heap_dir = Config::getInstance()->getHeapDir();
-	std::ofstream heap_file(heap_bin_path, std::ios::binary);
+	std::ofstream heap_file(heap_bin_path.c_str(), std::ios::binary);
 
 	heap_file.write((char *) data, hz.size);
 	heap_file.close();
@@ -140,7 +139,7 @@ void HeapModule::logHZ(std::string heap_link_name, HeapZone hz, std::string hz_m
 
 	//printf("Inside logHZ - heap_map_path: %s\n", heap_map_path.c_str());
 
-	std::ofstream heap_map_file(heap_map_path,ios::app);
+	std::ofstream heap_map_file(heap_map_path.c_str(),ios::app);
 
 	heap_map_file << heap_link_name << " " << std::hex << hz.begin << " " << std::to_string((_ULonglong)hz.size) << " " << "\n" ;
 

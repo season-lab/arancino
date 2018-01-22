@@ -1,4 +1,5 @@
 #include "ReportYaraRules.h"
+#include <iterator>
 
 
 ReportYaraRules::ReportYaraRules(void)
@@ -15,7 +16,7 @@ Json::Value ReportYaraRules::toJson(){
 	root["name"] = name;
 	root["result"] = result;
 	root["matched_rules"] = Json::Value(Json::arrayValue);
-	for(auto rule = std::begin(matched_rules);rule != std::end(matched_rules);++rule){
+	for(auto rule = matched_rules.begin(); rule != matched_rules.end(); ++rule){
 		root["matched_rules"].append(*rule);
 	}
 	

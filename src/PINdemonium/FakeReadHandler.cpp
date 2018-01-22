@@ -1,4 +1,5 @@
 #include "FakeReadHandler.h"
+#include "porting.h"
 
 FakeReadHandler::FakeReadHandler(void)
 {
@@ -21,7 +22,8 @@ FakeReadHandler::~FakeReadHandler(void)
 }
 
 ADDRINT FakeReadHandler::ntdllFuncPatch(ADDRINT curReadAddr, ADDRINT ntdllFuncAddr){
-	string patch = ntdllHooksAddrPatch.at(ntdllFuncAddr);
+	/* DCD: string patch = ntdllHooksAddrPatch.at(ntdllFuncAddr); */
+	string patch = map_at(ntdllHooksAddrPatch, ntdllFuncAddr);
 	ADDRINT delta = curReadAddr - ntdllFuncAddr;
 	curFakeMemory = patch.substr(delta,string::npos);
 	ADDRINT patchAddr = (ADDRINT)&curFakeMemory;

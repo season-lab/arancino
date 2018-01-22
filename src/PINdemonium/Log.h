@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "WriteInterval.h"
 #include <ctime>
-#include <direct.h>
+//#include <direct.h>
 #include "ProcInfo.h"
 #include <iomanip>
 #include <iostream>

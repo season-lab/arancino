@@ -1,4 +1,5 @@
 #include "HookFunctions.h"
+#include "porting.h"
 
 
 HookFunctions::HookFunctions(void)
@@ -42,7 +43,7 @@ VOID VirtualAllocHook(UINT32 virtual_alloc_size , UINT32 ret_heap_address ){
 	char *hz_data = (char *)malloc(hz.size);
 	PIN_SafeCopy(hz_data , (void const *)hz.begin , hz.size);
 
-	std::string heap_key =  std::to_string((_ULonglong)hz.begin) + std::to_string((_ULonglong)hz.end);
+	std::string heap_key = to_string((unsigned long long)hz.begin) + to_string((unsigned long long)hz.end); /* DCD: _ULonglong */
 
 	std::string hz_md5 = md5(heap_key);
 
@@ -78,7 +79,7 @@ VOID RtlAllocateHeapHook(int heap_alloc_size , UINT32 ret_heap_address ){
 	char *hz_data = (char *)malloc(hz.size);
 	PIN_SafeCopy(hz_data , (void const *)hz.begin , hz.size);
 
-	std::string heap_key =  std::to_string((_ULonglong)hz.begin) + std::to_string((_ULonglong)hz.end);
+	std::string heap_key = to_string((unsigned long long)hz.begin) + to_string((unsigned long long)hz.end); /* DCD: _ULonglong */
 
 	std::string hz_md5 = md5(heap_key);
 
@@ -98,7 +99,7 @@ VOID RtlReAllocateHeapHook(ADDRINT heap_address, UINT32 size ){
 	char *hz_data = (char *)malloc(hz.size);
 	PIN_SafeCopy(hz_data , (void const *)hz.begin , hz.size);
 
-	std::string heap_key =  std::to_string((_ULonglong)hz.begin) + std::to_string((_ULonglong)hz.end);
+	std::string heap_key =  to_string((unsigned long long)hz.begin) + to_string((unsigned long long)hz.end); /* DCD: _ULonglong */
 
 	std::string hz_md5 = md5(heap_key);
 

@@ -29,7 +29,7 @@ Json::Value ReportDump::toJson(){
 		
 
 	//iterate over the heuristics andf append their json content in the "heuristics field" array of the current dump
-	for(auto heur = std::begin(this->heuristics); heur != std::end(this->heuristics); ++heur){
+	for(auto heur = this->heuristics.begin(); heur != this->heuristics.end(); ++heur){
 		ReportObject * cur_heur = *heur;       
 		Json::Value heur_json = cur_heur->toJson();     //generate the json of the heuristic
 		root["heuristics"].append(heur_json);			//append the heuristic json to the current dump json 
@@ -37,7 +37,7 @@ Json::Value ReportDump::toJson(){
 	}
 
 	//iterate over the imports and append their json content in the "import field" array of the current dump
-	for(auto import = std::begin(this->imported_functions); import != std::end(this->imported_functions); ++import){
+	for(auto import = this->imported_functions.begin(); import != this->imported_functions.end(); ++import){
 		ReportObject * current_import = *import;       
 		Json::Value heur_json = current_import->toJson();     //generate the json of the import
 		root["imports"].append(heur_json);			//append the import json to the current dump json 

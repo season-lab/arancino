@@ -5,7 +5,8 @@
 #include "Debug.h"
 #include "TimeTracker.h"
 #include <time.h>
-#include <unordered_set>
+#include <set>
+//#include <unordered_set>
 #include "Helper.h"
 #include <map>
 #include "md5.h"
@@ -93,7 +94,7 @@ public:
 	BOOL getPopadFlag();
 	string getProcName();
 	clock_t getStartTimer();
-	std::unordered_set<ADDRINT> getJmpBlacklist();
+	std::set<ADDRINT> getJmpBlacklist(); /* DCD: unordered_set */
 	ADDRINT getPINVMStart();
 	ADDRINT getPINVMEnd();
 	std::map<string ,HeapZone> getHeapMap();
@@ -168,8 +169,8 @@ private:
 	ProcInfo::ProcInfo();
 	ADDRINT first_instruction;
 	ADDRINT prev_ip;
-	std::unordered_set<string> interresting_processes_name; 
-	std::unordered_set<unsigned int> interresting_processes_pid;  
+	std::set<string> interresting_processes_name; /* DCD: unordered_set */
+	std::set<unsigned int> interresting_processes_pid; /* DCD: unordered_set */
 	std::vector<MemoryRange>  stacks;				   //Set of Stack one for each thread
 	MemoryRange mainImg;
 	std::vector<MemoryRange> tebs;                     //Teb Base Address
@@ -180,7 +181,7 @@ private:
 	std::map<std::string, HeapZone> HeapMap;
 	std::vector<HeapZone> WhitelistHeap;
 	std::map<std::string, std::string> HeapMapDumped;
-	std::unordered_set<ADDRINT> addr_jmp_blacklist;
+	std::set<ADDRINT> addr_jmp_blacklist; /* DCD: unordered_set */
 	std::vector<LibraryItem> knownLibraries;		   //vector of know library loaded
 	std::vector<LibraryItem> unknownLibraries;		   //vector of unknow library loaded	
 	std::vector<Section> protected_section;			   //vector of protected section ( for example the .text of ntdll is protected ( write on these memory range are redirected to other heap's zone ) )

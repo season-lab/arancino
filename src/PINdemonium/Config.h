@@ -4,14 +4,14 @@
 #include "WriteInterval.h"
 #include "ProcInfo.h"
 #include <ctime>
-#include <direct.h>
+//#include <direct.h>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include "json.h"
 namespace W {
-	#include <windows.h>
+	#include "windows.h"
 }
 
 //if it is uncommented the result will be saved on file otherwise they'll be printed to stdout

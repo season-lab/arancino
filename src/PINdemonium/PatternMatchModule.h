@@ -4,10 +4,10 @@
 #include <map>
 #include <string>
 #include "Config.h"
-#include <regex>
+//#include <regex> /* TODO */
 
 namespace W{
-	#include <Windows.h>
+	#include "windows.h"
 }
 
 class PatternMatchModule

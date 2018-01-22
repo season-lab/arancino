@@ -71,7 +71,7 @@ UINT32 ScyllaWrapperInterface::launchScyllaDumpAndFix(int pid, int curEip, std::
 
 void ScyllaWrapperInterface::addImportFunctionToDumpReport(string reconstructed_imports_file){
 	string line;
-	std::ifstream myfile(reconstructed_imports_file);
+	std::ifstream myfile(reconstructed_imports_file.c_str());
 	vector<string> imports;
 	vector<ReportObject *> imports_report;
 	int imports_number=0;

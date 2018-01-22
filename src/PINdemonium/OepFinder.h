@@ -11,7 +11,7 @@
 #include "md5.h"
 #include "Helper.h"
 namespace W {
-	#include <windows.h>
+	#include "windows.h"
 }
 #include "GdbDebugger.h"
 #include "ScyllaWrapperInterface.h"

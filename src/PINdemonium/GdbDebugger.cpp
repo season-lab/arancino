@@ -1,4 +1,5 @@
 #include "GdbDebugger.h"
+#include <cstring>
 
 #define BUFSIZE 10000
 
@@ -16,7 +17,7 @@ GdbDebugger* GdbDebugger::getInstance()
 
 GdbDebugger::GdbDebugger(void)
 {
-   SECURITY_ATTRIBUTES saAttr; 
+   W::SECURITY_ATTRIBUTES saAttr; 
    //Set the bInheritHandle flag so pipe handles are inherited. 
    saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
    saAttr.bInheritHandle = TRUE; 

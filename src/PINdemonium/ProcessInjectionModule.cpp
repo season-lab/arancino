@@ -1,4 +1,5 @@
 #include "ProcessInjectionModule.h"
+#include "porting.h"
 
 
 ProcessInjectionModule* ProcessInjectionModule::instance = 0;
@@ -94,7 +95,7 @@ string ProcessInjectionModule::DumpRemoteWriteInterval(WriteInterval* item,W::DW
 	unsigned char * buffer = (unsigned char *)malloc(size);
 	W::HANDLE process = W::OpenProcess(PROCESS_VM_READ,false,pid);
 	if(W::ReadProcessMemory(process,(W::LPVOID)item->getAddrBegin(),buffer,  size,&dwBytesRead)){
-		string path = config->getWorkingDir()+ "/" + std::to_string((long double)pid) + "_" + getNameFromPid(pid) + ".bin";
+		string path = config->getWorkingDir()+ "/" + to_string(pid) + "_" + getNameFromPid(pid) + ".bin"; /* DCD: long double for pid?!?*/
 		Helper::writeBufferToFile(buffer,size,path);
 		MYINFO("Dumped remote injected memory inside pid %d to %s",pid,path.c_str());
 		return path;
@@ -137,7 +138,7 @@ string ProcessInjectionModule::getNameFromPid(W::DWORD pid) {
 				}
             } while(Process32Next(hSnapshot, &pe32));
          }
-         CloseHandle(hSnapshot);
+         W::CloseHandle(hSnapshot);
     }
 	return "";
 }

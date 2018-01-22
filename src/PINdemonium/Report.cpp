@@ -68,7 +68,7 @@ void Report::closeReport(){
 //create a new file where writes the current report
 void Report::writeJsonToReport(Json::Value report ){
 	ofstream report_file;
-	report_file.open(report_path,std::ofstream::out);
+	report_file.open(report_path.c_str(),std::ofstream::out);
 	Json::FastWriter fastWriter;
 	report_file << fastWriter.write(report);
 	report_file.flush();
