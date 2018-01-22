@@ -2,39 +2,40 @@
 
 ## Dependencies
 
-* [PIN](http://software.intel.com/sites/landingpage/pintool/downloads/pin-2.14-71313-msvc10-windows.zip)
+* [PIN 2.14](http://software.intel.com/sites/landingpage/pintool/downloads/pin-2.14-71313-msvc10-windows.zip) for MSVC10
 
-* [Scylla](https://github.com/NtQuery/Scylla) 
+* Visual Studio 2010 Express
 
-* Visual studio 2010
+* [Windows SDK 7.1](https://www.microsoft.com/en-us/download/details.aspx?id=8279)
+
+* [Windows Driver Kit 7.1.0](https://www.microsoft.com/en-us/download/details.aspx?id=11800)
+
+Visual Studio 2010 Express does not come with an x64 compiler, thus WinSDK is required. Also, the ATL libraries used by Scylla are not available in the Express release, so we require WinDDK as well.
+
+If you are experiencing the following error message during the Windows SDK installation:
+
+> Some Windows SDK components require the RTM .NET Framework 4. Setup detected a pre-release version of the .NET Framework 4. If you continue with Setup, these components will not be installed. [...]
+
+Try this [workaround](https://stackoverflow.com/a/32322920) to trick the installer into thinking that a compatible version of .NET is installed. We used [Microsoft .NET Framework 4.6.2](https://www.microsoft.com/en-US/download/details.aspx?id=53344) in our tests.
 
 
+## Compilation
 
-## Installation
+In the following we assume that PIN is installed in **C:\\pin**, while headers and libraries from Windows Driver Kit in **C:\\WinDDK\7600.16385.1**. If you chose different folders, please update the user-defined macros *PinFolder* and *WinDDK* from the **Locals** property page of the Visual Studio project(s).
 
 1. Download the linked version of PIN
 
 2. Unzip PIN to the root directory and rename the folder to **C:\\pin**
 
-3. Clone this repository
+3. Open the file **PinUnpacker.sln** with Visual Studio 2010
 
-4. Extract the archive in ScyllaDependencies/diStorm.rar into PINdemonium/Scylla/
+4. Copy the folders **PINdemonium\PINdemoniumDependencies** and **PINdemonium\PINdemoniumResults** in **C:\pin\\**
 
-5. Extract the archive in ScyllaDependencies/tinyxml.rar into PINdemonium/Scylla/
+5. Be sure that you are compiling in Release mode 
 
-6. Extract the archive in ScyllaDependencies/WTL.rar into PINdemonium/Scylla/
+6. Compile the solution
 
-5. Open the file **PinUnpacker.sln** with Visual Studio 2010 ( **NB: The version is mandatory** )
-
-6. Copy the folders **PINdemonium\PINdemoniumDependencies** and **PINdemonium\PINdemoniumResults** in **C:\pin\\**
-
-7. Be sure that you are compiling in Release mode 
-
-8. Be sure that all the module inside the project are compiled using the platform toolset v100 ( you can see this with right click on the module -> Properties -> platform toolset field )
-
-9. Compile the solution
-
-10. **Optional** : Create a folder called **PINdemoniumPlugins** in **C:\pin\\**
+7. **Optional** : Create a folder called **PINdemoniumPlugins** in **C:\pin\\**
 
 ```
 	\---C
@@ -70,6 +71,8 @@
 			   	|
 			   \+---PINdemonium.dll
 ```
+
+You will get a linking-time warning about ATL sections merged with different attributes. You can get rid of them by [changing the settings in atlbase.h](https://stackoverflow.com/questions/9559547/atl-library-warning-lnk4254-and-lnk4078), but they are [unlikely to cause any real problem](https://sourceforge.net/p/wtl/support-requests/2/).
 
 ## Usage
 
