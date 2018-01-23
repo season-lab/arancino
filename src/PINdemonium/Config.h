@@ -34,7 +34,7 @@ public:
 	string getScyllaDumperPath();
 	string getScyllaWrapperPath();
 	string getScyllaPluginsPath();
-	long double getDumpNumber();
+	int getDumpNumber();
 	string getFilteredWrites();
 	
 	
@@ -93,7 +93,7 @@ private:
 	string working_path;        //Path of the final (IAT fixed) Dump
 	string cur_list_path;		 //Path of the list of the detected function
 	string heap_dir;
-	long double dump_number;
+	int dump_number; /* DCD */
 	string getCurDateAndTime();
 	int numberOfBadImports;
 	void loadJson(string path);

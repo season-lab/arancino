@@ -95,7 +95,9 @@
     <ClCompile Include="HookFunctions.cpp" />
     <ClCompile Include="HookSyscalls.cpp" />
     <ClCompile Include="jsoncpp.cpp" />
-    <ClCompile Include="Log.cpp" />
+    <ClCompile Include="Log.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="PatternMatchModule.cpp" />
     <ClCompile Include="PINshield.cpp" />

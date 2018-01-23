@@ -1,3 +1,4 @@
+#define PIN_CRT
 #include <stdio.h>
 
 /// Json-cpp amalgated source (http://jsoncpp.sourceforge.net/).
@@ -208,6 +209,8 @@ static inline void fixNumericLocale(char* begin, char* end) {
 #include <set>
 #include <limits>
 
+#if defined(PIN_CRT)
+#else
 #if defined(_MSC_VER)
 #if !defined(WINCE) && defined(__STDC_SECURE_LIB__) && _MSC_VER >= 1500 // VC++ 9.0 and above 
 #define snprintf sprintf_s
@@ -232,6 +235,8 @@ static inline void fixNumericLocale(char* begin, char* end) {
 // Disable warning about strdup being deprecated.
 #pragma warning(disable : 4996)
 #endif
+#endif
+
 
 static int const stackLimit_g = 1000;
 static int       stackDepth_g = 0;  // see readValue()
@@ -4040,6 +4045,10 @@ Value& Path::make(Value& root) const {
 #include <cstring>
 #include <cstdio>
 
+#ifdef PIN_CRT
+#include <math.h>
+#define isfinite finite // default isfinite() macro yields C4244 warning (double->float cast)
+#else
 #if defined(_MSC_VER) && _MSC_VER >= 1200 && _MSC_VER < 1800 // Between VC++ 6.0 and VC++ 11.0
 #include <float.h>
 #define isfinite _finite
@@ -4076,7 +4085,7 @@ Value& Path::make(Value& root) const {
 #elif _MSC_VER >= 1900 // VC++ 14.0 and above
 #define snprintf std::snprintf
 #else
-#define snprintf _snprintf
+//#define snprintf _snprintf /* DCD */
 #endif
 #elif defined(__ANDROID__) || defined(__QNXNTO__)
 #define snprintf snprintf
@@ -4095,6 +4104,7 @@ Value& Path::make(Value& root) const {
 #if defined(_MSC_VER) && _MSC_VER >= 1400 // VC++ 8.0
 // Disable warning about strdup being deprecated.
 #pragma warning(disable : 4996)
+#endif
 #endif
 
 namespace Json {

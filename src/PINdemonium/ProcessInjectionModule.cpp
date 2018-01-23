@@ -127,7 +127,7 @@ VOID ProcessInjectionModule::ExecuteHeuristics(string path_to_analyse){
 }
 
 string ProcessInjectionModule::getNameFromPid(W::DWORD pid) {
-    HANDLE hSnapshot = W::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    W::HANDLE hSnapshot = W::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if(hSnapshot) {
         W::PROCESSENTRY32 pe32;
         pe32.dwSize = sizeof(W::PROCESSENTRY32);

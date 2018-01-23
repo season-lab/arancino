@@ -1,5 +1,6 @@
 #include "PatternMatchModule.h"
 #include "porting.h"
+//#include <regex> /* TODO - however the authors commented the code using it! */
 
 //----------------------------- PATCH FUNCTIONS -----------------------------//
 

@@ -77,27 +77,27 @@ void ScyllaWrapperInterface::addImportFunctionToDumpReport(string reconstructed_
 	int imports_number=0;
 	//parsing the file to extract modules and functions names and populate json objects
 	while (getline(myfile, line)){
-        try{
-			
-			imports = Helper::split(line,' ');  //the format of the file is "module_name function_name"
-			ReportObject *current_import = new ReportImportedFunction(imports.at(0), imports.at(1));
-			imports_number++;
-			imports_report.push_back(current_import);
-
-		}catch (const std::out_of_range& ){ //handle possible missing information inside the file
-			MYERRORE("Problem adding function to the imported function report line: %s",line.c_str());
-		}	
+		/* TODO: as of now Pin would need an ad-hoc internal exception handler */
+        //try{
+		imports = Helper::split(line,' ');  //the format of the file is "module_name function_name"
+		ReportObject *current_import = new ReportImportedFunction(imports.at(0), imports.at(1));
+		imports_number++;
+		imports_report.push_back(current_import);
+		//}catch (const std::out_of_range& ){ //handle possible missing information inside the file
+		//	MYERRORE("Problem adding function to the imported function report line: %s",line.c_str());
+		//}	
 	}
 	
 	//Saving the information to the report
-	try{
-		ReportDump& report_dump = Report::getInstance()->getCurrentDump();
-		report_dump.setImportedFunctions(imports_report);
-		report_dump.setNumberOfImports(imports_number);
-	}
-	catch (const std::out_of_range& ){
-		MYERRORE("Problem creating ReportImportedFunction report");
-	}
+	/* TODO: as of now Pin would need an ad-hoc internal exception handler */
+	//try{
+	ReportDump& report_dump = Report::getInstance()->getCurrentDump();
+	report_dump.setImportedFunctions(imports_report);
+	report_dump.setNumberOfImports(imports_number);
+	//}
+	//catch (const std::out_of_range& ){
+	//	MYERRORE("Problem creating ReportImportedFunction report");
+	//}
 
 }
 

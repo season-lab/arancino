@@ -4,7 +4,6 @@
 #include <map>
 #include <string>
 #include "Config.h"
-//#include <regex> /* TODO */
 
 namespace W{
 	#include "windows.h"
