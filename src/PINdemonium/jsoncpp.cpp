@@ -1,4 +1,3 @@
-#define PIN_CRT
 #include <stdio.h>
 
 /// Json-cpp amalgated source (http://jsoncpp.sourceforge.net/).
@@ -209,8 +208,7 @@ static inline void fixNumericLocale(char* begin, char* end) {
 #include <set>
 #include <limits>
 
-#if defined(PIN_CRT)
-#else
+#ifndef PIN_CRT
 #if defined(_MSC_VER)
 #if !defined(WINCE) && defined(__STDC_SECURE_LIB__) && _MSC_VER >= 1500 // VC++ 9.0 and above 
 #define snprintf sprintf_s
@@ -2605,6 +2603,16 @@ static inline void releaseStringValue(char* value, unsigned) {
 
 namespace Json {
 
+#ifdef PIN_CRT
+JSONCPP_NORETURN void throwRuntimeError(JSONCPP_STRING const& msg)
+{
+	JSON_FAIL_MESSAGE(msg);
+}
+JSONCPP_NORETURN void throwLogicError(JSONCPP_STRING const& msg)
+{
+	JSON_FAIL_MESSAGE(msg);
+}
+#else
 Exception::Exception(JSONCPP_STRING const& msg)
   : msg_(msg)
 {}
@@ -2628,6 +2636,7 @@ JSONCPP_NORETURN void throwLogicError(JSONCPP_STRING const& msg)
 {
   throw LogicError(msg);
 }
+#endif
 
 // //////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////

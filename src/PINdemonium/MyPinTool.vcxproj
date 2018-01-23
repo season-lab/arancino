@@ -36,7 +36,7 @@
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(WinDDK)\lib\win7\amd64\;$(PinFolder)\intel64\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(WinDDK)\lib\win7\amd64\;$(PinFolder)\intel64\lib;$(PinFolder)\intel64\runtime\pincrt;$(PinFolder\extras\xed-intel64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
@@ -66,8 +66,8 @@
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
-      <AdditionalOptions>/export:main %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>pin.lib;libxed.lib;libcpmt.lib;libcmt.lib;pinvm.lib;kernel32.lib;ntdll-64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/export:main /ignore:4210 /ignore:4049 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>$(PinFolder)\intel64\runtime\pincrt\crtbeginS.obj;pin.lib;xed.lib;pinvm.lib;stlport-static.lib;m-static.lib;c-static.lib;os-apis.lib;ntdll-64.lib;kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(PinFolder)\intel64\lib;$(PinFolder)\intel64\lib-ext;$(PinFolder)\extras\xed-intel64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -81,6 +81,7 @@
       <EntryPointSymbol>Ptrace_DllMainCRTStartup</EntryPointSymbol>
       <BaseAddress>0xC5000000</BaseAddress>
       <TargetMachine>MachineX64</TargetMachine>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -1,3 +1,7 @@
+/* DCD: to get it running under Pin CRT */
+#define PIN_CRT
+#define JSON_USE_EXCEPTION 0
+
 /// Json-cpp amalgated header (http://jsoncpp.sourceforge.net/).
 /// It is intended to be used with #include "json/json.h"
 
@@ -198,6 +202,9 @@ license you like.
 // In c++11 the override keyword allows you to explicity define that a function
 // is intended to override the base-class version.  This makes the code more
 // managable and fixes a set of common hard-to-find bugs.
+#ifdef PIN_CRT
+#define JSONCPP_OVERRIDE
+#else
 #if __cplusplus >= 201103L 
 # define JSONCPP_OVERRIDE override
 #elif defined(_MSC_VER) && _MSC_VER > 1600
@@ -205,11 +212,13 @@ license you like.
 #else
 # define JSONCPP_OVERRIDE
 #endif
+#endif
 
 #ifndef JSON_HAS_RVALUE_REFERENCES
-
+#ifndef PIN_CRT
 #if defined(_MSC_VER) && _MSC_VER >= 1600 // MSVC >= 2010
 #define JSON_HAS_RVALUE_REFERENCES 1
+#endif
 #endif // MSVC >= 2010
 
 #ifdef __clang__
