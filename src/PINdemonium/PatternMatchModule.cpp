@@ -1,5 +1,5 @@
 #include "PatternMatchModule.h"
-
+#include "porting.h"
 
 //----------------------------- PATCH FUNCTIONS -----------------------------//
 
@@ -95,7 +95,7 @@ bool PatternMatchModule::patchDispatcher(INS ins, ADDRINT curEip){
 	std::map<string, AFUNPTR>::iterator item = this->patchesMap.find(disass_instr);
 	if(item != this->patchesMap.end()){
 		//if so retrieve the correct function pointer for the analysis routine at the next round
-		this->curPatchPointer = this->patchesMap.at(disass_instr);
+		this->curPatchPointer = map_at(patchesMap, disass_instr);
 		return true;
 	}
 	//otherwiae continue the analysis in the class PINshield

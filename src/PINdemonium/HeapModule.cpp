@@ -1,4 +1,5 @@
 #include "HeapModule.h"
+#include "porting.h"
 
 HeapModule* HeapModule::instance = 0;
 
@@ -61,7 +62,7 @@ VOID HeapModule::saveHeapZones(std::map<std::string,HeapZone> hzs, std::map<std:
 
 	MYPRINT("[INFO][OepFinder.cpp] - SAVING ALL THE HEAP-ZONES ALLOCATED UNTIL NOW: %d HEAP-ZONES\n", hzs.size());
 	std::string heaps_dir = Config::getInstance()->getWorkingDir() + "\\heaps";
-	_mkdir(heaps_dir.c_str()); // create the folder we will store the .bin of the heap zones 
+	OS_MkDir(heaps_dir.c_str(), 777); // create the folder we will store the .bin of the heap zones 
 
 	char *hz_data;
 	std::string hz_md5;
@@ -141,7 +142,7 @@ void HeapModule::logHZ(std::string heap_link_name, HeapZone hz, std::string hz_m
 
 	std::ofstream heap_map_file(heap_map_path.c_str(),ios::app);
 
-	heap_map_file << heap_link_name << " " << std::hex << hz.begin << " " << std::to_string((_ULonglong)hz.size) << " " << "\n" ;
+	heap_map_file << heap_link_name << " " << std::hex << hz.begin << " " << to_string((unsigned long long)hz.size) << " " << "\n" ;
 
 	heap_map_file.close();
 }

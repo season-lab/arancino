@@ -1,5 +1,6 @@
 /* TODO: this looks like a leftover */
 #include "Log.h"
+#include "porting.h"
 
 //constanth path and variable for our logging system
 const string Log::PIN_DIRECTORY_PATH_OUTPUT = "C:\\pin\\PinUnpackerResults\\";
@@ -28,7 +29,7 @@ Log::Log(){
 	//build the path for this execution
 	this->base_path = PIN_DIRECTORY_PATH_OUTPUT + this->getCurDateAndTime() + "\\";
 	//mk the directory
-	_mkdir(this->base_path.c_str());
+	OS_MkDir(this->base_path.c_str(), 777);
 	//create the log and report files
 	string log_file_path = this->base_path + LOG_FILENAME;
 	string report_file_path = this->base_path + REPORT_FILENAME;
@@ -60,7 +61,7 @@ string Log::getBasePath(){
 
 string Log::getCurrentDumpFilePath(){	
 	//Creating the output filename string of the current dump (ie finalDump_0.exe or finalDump_1.exe)
-	this->cur_dump_path = this->base_path + ProcInfo::getInstance()->getProcName() + "_" + std::to_string(this->dump_number) + ".exe" ;
+	this->cur_dump_path = this->base_path + ProcInfo::getInstance()->getProcName() + "_" + to_string(this->dump_number) + ".exe" ;
 
 	return this->cur_dump_path;	
 }
@@ -68,7 +69,7 @@ string Log::getCurrentDumpFilePath(){
 
 string Log::getCurrentDetectedListPath(){	
 	//Creating the output filename string of the current dump (ie finalDump_0.exe or finalDump_1.exe)
-	this->cur_list_path = this->base_path + this->DETECTED_BAD_IMPORTS_LIST + "_" + std::to_string(this->dump_number) + ".txt" ;
+	this->cur_list_path = this->base_path + this->DETECTED_BAD_IMPORTS_LIST + "_" + to_string(this->dump_number) + ".txt" ;
 
 	return this->cur_list_path;	
 }

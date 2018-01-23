@@ -1,4 +1,5 @@
 #include "Config.h"
+#include "porting.h"
 
 // rely on the preprocessor
 #define	STRINGIFY(x)	#x
@@ -58,10 +59,10 @@ Config::Config(std::string config_path){
 	//printf("BASE PATH: %s\n" , this->base_path.c_str());
 
 	//mk the directory
-	_mkdir(this->base_path.c_str());
+	OS_MkDir(this->base_path.c_str(), 777);
 
 	this->heap_dir = this->base_path + "\\HEAP";
-	_mkdir(this->heap_dir.c_str());
+	OS_MkDir(this->heap_dir.c_str(), 777);
 
 	//printf("HEAP DIR: %s\n" , this->heap_dir.c_str());
 
@@ -104,7 +105,7 @@ long double Config::getDumpNumber(){
 }
 
 string Config::getNotWorkingDumpPath(){
-	return this->not_working_path + ProcInfo::getInstance()->getProcName() + "_" + std::to_string(this->dump_number) + ".exe";
+	return this->not_working_path + ProcInfo::getInstance()->getProcName() + "_" + to_string(this->dump_number) + ".exe";
 }
 
 string Config::getWorkingDumpPath(){	
@@ -113,7 +114,7 @@ string Config::getWorkingDumpPath(){
 
 	//_mkdir(this->base_path.c_str());
 
-	this->working_path = this->working_dir + "\\" + proc_name + "_" + std::to_string(this->dump_number) + ".exe" ;
+	this->working_path = this->working_dir + "\\" + proc_name + "_" + to_string(this->dump_number) + ".exe" ;
 	return this->working_path;
 	
 	 
@@ -147,7 +148,7 @@ string Config::getCurrentReconstructedImportsPath(){
 
 string Config::getYaraResultPath(){	
  	//Creating the output filename string of the current dump (ie finalDump_0.exe or finalDump_1.exe)
- 	return  this->base_path + "yaraResults" + "_" + std::to_string(this->dump_number) + ".txt" ;
+ 	return  this->base_path + "yaraResults" + "_" + to_string(this->dump_number) + ".txt" ;
  }
 
 string Config::getScyllaDumperPath(){
@@ -186,7 +187,7 @@ FILE* Config::getTestFile()
 void Config::loadJson(string config_path){
 	Json::Value root;   // will contains the root value after parsing.
     Json::Reader reader;
-    std::ifstream config_file(config_path, std::ifstream::binary);
+    std::ifstream config_file(config_path.c_str(), std::ifstream::binary);
     bool parsingSuccessful = reader.parse( config_file, root, false );
 	if ( !parsingSuccessful ){
 		printf("Error parsing the json config file: %s",reader.getFormattedErrorMessages().c_str());
@@ -251,9 +252,9 @@ void Config::setNewWorkingDirectory(bool isInjection){
 		prefix = "dump_";
 	}
 	
-	this->working_dir = this->base_path + prefix + std::to_string(this->getDumpNumber());
+	this->working_dir = this->base_path + prefix + to_string(this->getDumpNumber());
 
-	_mkdir(this->working_dir.c_str());
+	OS_MkDir(this->working_dir.c_str(), 777);
 
 }
 
