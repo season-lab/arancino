@@ -2,7 +2,7 @@
 
 ## Dependencies
 
-* [PIN 2.14](http://software.intel.com/sites/landingpage/pintool/downloads/pin-2.14-71313-msvc10-windows.zip) for MSVC10
+* [PIN 3.5](http://software.intel.com/sites/landingpage/pintool/downloads/pin-3.5-97503-gac534ca30-msvc-windows.zip) (porting by SEASON Lab)
 
 * Visual Studio 2010 Express
 
@@ -109,8 +109,8 @@ Inside the template two helper function are provided:
 
 ## Yara Rules
 Every time a dump is taken yara is invoked and the rules contained inside **C:\pin\PINdemoniumDependencies\Yara\yara_rules.yar** are checked. The current rule comes from https://github.com/Yara-Rules/rules:
-	- rules\evasion_packer : Try to identify antiVM/antiDebug techniques and the presence of a known packer
-	- rules\malware: Try to identify the malware family of the unpacked stage
+- **rules\evasion_packer**: Try to identify antiVM/antiDebug techniques and the presence of a known packer
+- **rules\malware**: Try to identify the malware family of the unpacked stage
 ## Config
 Config file located at C:\pin\PINdemoniumDependencies\config.json contains variables which allow to set the location of the outputs
 
