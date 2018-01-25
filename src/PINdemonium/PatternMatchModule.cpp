@@ -1,5 +1,6 @@
 #include "PatternMatchModule.h"
 #include "porting.h"
+#include "pin.h"
 //#include <regex> /* TODO - however the authors commented the code using it! */
 
 //----------------------------- PATCH FUNCTIONS -----------------------------//
@@ -11,6 +12,7 @@ VOID patchInt2e(ADDRINT ip, CONTEXT *ctxt, ADDRINT cur_eip ){
 	PIN_SetContextReg(ctxt, REG_EDX, cur_eip);	
 } 
 
+/* TODO this might be a problem for 64-bit target! see FPSTATE */
 //avoid the leak of the modified ip by pin
 VOID patchFsave(ADDRINT ip, CONTEXT *ctxt, ADDRINT cur_eip ){
 	//set the return value of the int2e (stored in edx) as the current ip
@@ -18,7 +20,11 @@ VOID patchFsave(ADDRINT ip, CONTEXT *ctxt, ADDRINT cur_eip ){
 	//get the current fp unit state
 	PIN_GetContextFPState(ctxt, &a);
 	//set the correct ip and save the state
+	#ifdef __LP64__
+	ASSERT(false, "FPSTATE->fxsave_legacy._fpuip is 32-bit long");
+	#else
 	a.fxsave_legacy._fpuip = cur_eip;
+	#endif
 	PIN_SetContextFPState(ctxt, &a);
 } 
 

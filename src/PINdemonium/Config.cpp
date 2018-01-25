@@ -1,6 +1,8 @@
 #include "Config.h"
 #include "porting.h"
 
+#define JSON_CONFIG_FILE	"\\arancino.json" // from root directory of Pin
+
 // rely on the preprocessor
 #define	STRINGIFY(x)	#x
 #define	TOSTRING(x)		STRINGIFY(x)
@@ -28,38 +30,32 @@ const UINT32 Config::INTERRUPT_TIME_DIVISOR = 1000;
 const UINT32 Config::SYSTEM_TIME_DIVISOR = 100;
 
 // singleton
-Config* Config::instance = 0;
+Config* Config::instance = nullptr;
 
 //singleton
 Config* Config::getInstance()
 {
-	if (instance == 0){
-		// TODO fix this nightmare
-		char bufFixMe[256];
-		snprintf(bufFixMe, 256, "%s", PIN_FOLDER);
-		snprintf(bufFixMe + sizeof(PIN_FOLDER) - 2, 256 - sizeof(PIN_FOLDER) + 2, "\\PINdemoniumDependencies\\config.json");
-		cerr << "Path to JSON config file: " << bufFixMe+1 << endl;
-		instance = new Config(bufFixMe);
+	if (instance == nullptr) {
+		instance = new Config();
 	}
 	return instance;
 }
 
-//at the first time open the log file
-Config::Config(std::string config_path){
+Config::Config(){
+	this->pin_dir = PIN_FOLDER;
+	this->pin_dir = this->pin_dir.substr(1, sizeof(PIN_FOLDER)-3); // delete first and last (mind the \0)
 
+	// read configuration from config.json
+	string config_path = this->pin_dir.append(JSON_CONFIG_FILE);
+	//std::cerr << config_path << std::endl;
 	loadJson(config_path);
+
 	//set the initial dump number
-
-
-
-	//W::DebugBreak();
 	this->dump_number = 0;
-	//build the path for this execution
-	this->base_path = results_path + this->getCurDateAndTime() + "\\";
-	
-	
 
-	//printf("BASE PATH: %s\n" , this->base_path.c_str());
+	//build the path for this execution
+	this->base_path = results_path + "\\" + this->getCurDateAndTime() + "\\";
+	//std::cerr << "BASE PATH: " << this->base_path << std::endl;
 
 	//mk the directory
 	OS_MkDir(this->base_path.c_str(), 777);
@@ -69,20 +65,18 @@ Config::Config(std::string config_path){
 
 	//printf("HEAP DIR: %s\n" , this->heap_dir.c_str());
 
+	//std::cerr << "BASE PATH: " << this->base_path << std::endl;
 
-	//create the log and report files
-	string log_file_path = this->base_path + log_filename;
 
-	//printf("LOG FILE PATH: %s\n" , log_file_path.c_str());
-
-	this->log_file = fopen(log_file_path.c_str(),"w");	
-
-	// TO FIX Test filename loaded directly without config file
-	string test_filename = this->base_path + "testEvasion.txt";
-	printf("test_filename is %s\n", test_filename);
-
-	this->test_file = fopen(test_filename.c_str(),"w");
-	printf("test_file is %08x\n", test_file);
+	//create the log and log files /* TODO report files was mentioned here */
+	/* TODO #ifdef LOG_WRITE_TO_FILE */
+	string file_path = this->base_path + log_filename;
+	//printf("LOG FILE PATH: %s\n" , file_path.c_str());
+	this->log_file = fopen(file_path.c_str(), "w");
+	
+	file_path = this->base_path + test_filename;
+	//printf("TEST FILE PATH: %s\n" , file_path.c_str());
+	this->test_file = fopen(file_path.c_str(), "w");
 
 	this->working = -1;
 }
@@ -186,22 +180,36 @@ FILE* Config::getTestFile()
 /* ----------------------------- UTILS -----------------------------*/
 
 void Config::loadJson(string config_path){
-	Json::Value root;   // will contains the root value after parsing.
+	Json::Value root;
     Json::Reader reader;
-    std::ifstream config_file(config_path.c_str(), std::ifstream::binary);
-    bool parsingSuccessful = reader.parse( config_file, root, false );
+    
+	std::ifstream config_file(config_path.c_str(), std::ifstream::binary);
+	if (!config_file.good()) {
+		std::cerr << "Could not find the json config file: " << config_path << std::endl;
+
+		// failsafe values (Scylla & Yara will not be available)
+		log_filename = "arancino.log";
+		test_filename = "arancino-test.log";
+		results_path = "";
+		report_filename = "arancino-report.txt";
+		return;
+	}
+
+	bool parsingSuccessful = reader.parse( config_file, root, false );
 	if ( !parsingSuccessful ){
-		printf("Error parsing the json config file: %s",reader.getFormattedErrorMessages().c_str());
 		//Can't use LOG since the log path hasn't been loaded yet
+		std::cerr << "Error parsing the json config file: "
+			      << reader.getFormattedErrorMessages() << std::endl;
 	}
 	
 	results_path = root["results_path"].asString();
-	dependecies_path =  root["dependecies_path"].asString();
+	dependecies_path = root["dependecies_path"].asString();
 	plugins_path = root["plugins_path"].asString();
 	log_filename = root["log_filename"].asString();
+	test_filename = root["test_filename"].asString();
 	report_filename = root["report_filename"].asString();
 	filtered_writes =root["filtered_writes"].asString();
-	timeout =root["timeout"].asInt();
+	//timeout =root["timeout"].asInt();
 	yara_exe_path = root["yara_exe_path"].asString();
 	yara_rules_path  = root["yara_rules_path"].asString();
 

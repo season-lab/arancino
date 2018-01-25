@@ -83,17 +83,18 @@ public:
 		
 
 private:
-	Config::Config(string config_path);
+	Config::Config();
 	static Config* instance;
 	FILE *log_file;
 	FILE *test_file;
+	string pin_dir;
 	string working_dir;
 	string base_path;
 	string not_working_path;
 	string working_path;        //Path of the final (IAT fixed) Dump
 	string cur_list_path;		 //Path of the list of the detected function
 	string heap_dir;
-	int dump_number; /* DCD */
+	UINT32 dump_number;
 	string getCurDateAndTime();
 	int numberOfBadImports;
 	void loadJson(string path);
@@ -104,6 +105,7 @@ private:
 	string results_path;
 	string plugins_path; 
 	string log_filename;
+	string test_filename;
 	string report_filename;
 	string yara_exe_path;
 	string yara_rules_path;
@@ -112,7 +114,7 @@ private:
 	string not_working_directory;
 	//command line tuning flags
 	string filtered_writes;        //Which write instructions are filtered(possible values: 'stack teb')
-	UINT32 timeout;
+	//UINT32 timeout;
 
 
 
