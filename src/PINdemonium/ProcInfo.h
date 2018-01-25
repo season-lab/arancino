@@ -146,7 +146,7 @@ public:
 	BOOL isLibraryInstruction(ADDRINT address);
 	BOOL isKnownLibraryInstruction(ADDRINT address);
 	VOID addLibrary(const string name,ADDRINT startAddr,ADDRINT endAddr);
-	BOOL isLibItemDuplicate(UINT32 address , std::vector<LibraryItem> Libraries);
+	BOOL isLibItemDuplicate(ADDRINT address , std::vector<LibraryItem> Libraries);
 
 	BOOL getMemoryRange(ADDRINT address, MemoryRange& range);	
 	BOOL addProcessHeapsAndCheckAddress(ADDRINT address);

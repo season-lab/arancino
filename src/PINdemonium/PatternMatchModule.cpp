@@ -23,17 +23,17 @@ VOID patchFsave(ADDRINT ip, CONTEXT *ctxt, ADDRINT cur_eip ){
 } 
 
 //fake the result of an rdtsc operation by dividing it by RDTSC_DIVISOR
-VOID patchRtdsc(ADDRINT ip, CONTEXT *ctxt, ADDRINT cur_eip ){
+VOID patchRdtsc(ADDRINT ip, CONTEXT *ctxt, ADDRINT cur_eip ){
 	//get the two original values ()
-	UINT32 eax_value = PIN_GetContextReg(ctxt, REG_EAX);
-	UINT32 edx_value = PIN_GetContextReg(ctxt, REG_EDX);
+	ADDRINT eax_value = PIN_GetContextReg(ctxt, REG_EAX);
+	ADDRINT edx_value = PIN_GetContextReg(ctxt, REG_EDX);
 	//store the value of edx in a 64 bit data in order to shift this value correctly
-	UINT64 tmp_edx = edx_value;
+	ADDRINT tmp_edx = edx_value;
 	//we have to compose the proper returned value (EDX:EAX) so let's shift the value of EDX by 32 bit on the left (tmp_edx00..0) and add to this value eax_value (tmp_edxeax_value) and divide the result by a proper divisor
 	UINT64 divided_time = ( (tmp_edx << 32) + eax_value ) / Config::RDTSC_DIVISOR;
 	//get the right parts 
-	UINT32 eax_new_value = divided_time; 
-	UINT32 edx_new_value = divided_time >> 32;	
+	ADDRINT eax_new_value = divided_time;
+	ADDRINT edx_new_value = divided_time >> 32;
 	//MYINFO("Detected a rdtsc, EAX before = %08x , EAX after = %08x , EDX before: %08x , EDX after: %08x\n", eax_value, le_fighe_bianche, edx_value, edx_new_value);
 	//set the registerss
 	PIN_SetContextReg(ctxt, REG_EAX,eax_new_value);
@@ -51,7 +51,7 @@ PatternMatchModule::PatternMatchModule(void)
 	//ex : if i find an int 2e instruction we have the functon pointer for the right patch 
 	this->patchesMap.insert( std::pair<string,AFUNPTR>("int 0x2e",(AFUNPTR)patchInt2e) );
 	//this->patchesMap.insert( std::pair<string,AFUNPTR>("fsave",(AFUNPTR)patchFsave) );
-	//this->patchesMap.insert( std::pair<string,AFUNPTR>("rdtsc ",(AFUNPTR)patchRtdsc) );	
+	//this->patchesMap.insert( std::pair<string,AFUNPTR>("rdtsc ",(AFUNPTR)patchRdtsc) );	
 }
 
 

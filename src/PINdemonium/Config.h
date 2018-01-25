@@ -15,7 +15,7 @@ namespace W {
 }
 
 //if it is uncommented the result will be saved on file otherwise they'll be printed to stdout
-#define LOG_WRITE_TO_FILE 1
+//#define LOG_WRITE_TO_FILE 1 /* DCD */
 
 class Config
 {
@@ -41,12 +41,12 @@ public:
 	//utils
 	void incrementDumpNumber();
 	void Config::closeLogFile();
-	void Config::writeOnTimeLog(string s);
+	//void Config::writeOnTimeLog(string s);
 	void setWorking (int working);
 	void setNewWorkingDirectory(bool isInjection);
 	string getWorkingDir();
 	string getHeapDir();
-	string getInjectionDir();
+	//string getInjectionDir();
 	string getYaraExePath();
 	string getYaraRulesPath();
 

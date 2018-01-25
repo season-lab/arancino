@@ -34,9 +34,12 @@ Config* Config::instance = 0;
 Config* Config::getInstance()
 {
 	if (instance == 0){
-		// TODO remove this once validated
-		cerr << "Path to JSON config file: " << PIN_FOLDER "\\PINdemoniumDependencies\\config.json" << endl;
-		instance = new Config(PIN_FOLDER "\\PINdemoniumDependencies\\config.json");
+		// TODO fix this nightmare
+		char bufFixMe[256];
+		snprintf(bufFixMe, 256, "%s", PIN_FOLDER);
+		snprintf(bufFixMe + sizeof(PIN_FOLDER) - 2, 256 - sizeof(PIN_FOLDER) + 2, "\\PINdemoniumDependencies\\config.json");
+		cerr << "Path to JSON config file: " << bufFixMe+1 << endl;
+		instance = new Config(bufFixMe);
 	}
 	return instance;
 }

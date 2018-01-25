@@ -25,7 +25,7 @@ void HookSyscalls::syscallEntry(THREADID thread_id, CONTEXT *ctx, SYSCALL_STANDA
 	// 0 .. 7 -> &sc->arg0 .. &sc->arg7 = correspondence between the index of the argument and the struct field to be loaded
 	HookSyscalls::syscallGetArguments(ctx, std, 8, 0, &sc->arg0, 1, &sc->arg1, 2, &sc->arg2, 3, &sc->arg3, 4, &sc->arg4, 5, &sc->arg5, 6, &sc->arg6, 7, &sc->arg7);
 	//HookSyscalls::printArgs(sc);
-	std::map<unsigned long, string>::iterator syscallMapItem = syscallsMap.find(sc->syscall_number);
+	std::map<ADDRINT, string>::iterator syscallMapItem = syscallsMap.find(sc->syscall_number);
 	//search for an hook on entry
 	if(syscallMapItem !=  syscallsMap.end()){
 		//search if we have an hook for the syscall
@@ -41,7 +41,7 @@ void HookSyscalls::syscallExit(THREADID thread_id, CONTEXT *ctx, SYSCALL_STANDAR
 	//get the structure with the informations on the systemcall
 	syscall_t *sc = &((syscall_t *) v)[thread_id];
 	//search forn an hook on exit
-	std::map<unsigned long, string>::iterator syscallMapItem = syscallsMap.find(sc->syscall_number);
+	std::map<ADDRINT, string>::iterator syscallMapItem = syscallsMap.find(sc->syscall_number);
 
 	if(syscallMapItem !=  syscallsMap.end()){
 		//serch if we have an hook for the syscall
@@ -226,7 +226,7 @@ void HookSyscalls::enumSyscalls()
             if(*addr == 0xb8 && (addr[5] == 0xb9 || addr[5] == 0x33 || addr[5] == 0xba)) {
                 unsigned long syscall_number = *(unsigned long *)(addr + 1);
 				string syscall_name = string(name);
-				syscallsMap.insert(std::pair<unsigned long,string>(syscall_number,syscall_name));				
+				syscallsMap.insert(std::pair<ADDRINT,string>(syscall_number,syscall_name));				
             }
         }
     }

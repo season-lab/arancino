@@ -2114,14 +2114,19 @@ JSON_API JSONCPP_OSTREAM& operator<<(JSONCPP_OSTREAM&, const Value& root);
 
 #else // JSON_USE_EXCEPTION
 
+#ifdef PIN_CRT
 # define JSON_ASSERT(condition) assert(condition)
+#else
+#include "pin.h"
+#define JSON_ASSERT(condition) ASSERT(condition)
+#endif
 
 // The call to assert() will show the failure message in debug builds. In
 // release builds we abort, for a core-dump or debugger.
 # define JSON_FAIL_MESSAGE(message)                                            \
   {                                                                            \
     JSONCPP_OSTRINGSTREAM oss; oss << message;                                    \
-    assert(false && oss.str().c_str());                                        \
+    JSON_ASSERT(false && oss.str().c_str());                                        \
     abort();                                                                   \
   }
 

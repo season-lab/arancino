@@ -76,7 +76,7 @@ typedef void (* syscall_hook)(syscall_t *sc, CONTEXT *ctx, SYSCALL_STANDARD std)
 static std::map<string,syscall_hook> syscallsHooks;
 //binding between the ordinal of the syscall and the name of the syscall
 //(we have to fill this map at runtime because ordinals numbers are not consisten between different OS version or SP)
-static std::map<unsigned long,string> syscallsMap;
+static std::map<ADDRINT,string> syscallsMap;
 
 
 //--------------- END HELPER DATA STRUCTURES --------------//

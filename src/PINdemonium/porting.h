@@ -3,6 +3,12 @@
 #include <sstream>
 #include "Config.h"
 
+#ifdef __LP64__
+#define S_ADDR_DIFF(start, end)	(UINT32)((end)-(start))
+#else
+#define	S_ADDR_DIFF(start, end)	((end)-(start))
+#endif
+
 template<class K, class V>
 V& map_at(std::map<K, V> &map, K &k) {
 	// TODO handle case map.find(k) == map.end()

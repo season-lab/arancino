@@ -192,10 +192,6 @@ void initDebug(){
 
 // - set the option for the current run
 void ConfigureTool(){	
-
-	
-
-	
 	Config *config = Config::getInstance();
 	config->ANTIEVASION_MODE = KnobAntiEvasion.Value();
 	config->ANTIEVASION_MODE_INS_PATCHING = KnobAntiEvasionINSpatcher.Value();
@@ -258,6 +254,7 @@ int main(int argc, char * argv[]){
 	// Initialize pin
 	PIN_InitSymbols();
 	if (PIN_Init(argc, argv)) return Usage();
+
 	//Register PIN Callbacks
 	INS_AddInstrumentFunction(Instruction,0);
 	PIN_AddThreadStartFunction(OnThreadStart, 0);

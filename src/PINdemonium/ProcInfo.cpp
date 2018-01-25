@@ -1,4 +1,5 @@
 #include "ProcInfo.h"
+#include "porting.h"
 
 // singleton
 ProcInfo* ProcInfo::instance = 0;
@@ -196,7 +197,7 @@ float ProcInfo::GetEntropy(){
 	//calculate the entropy only on the main module address space
 	ADDRINT start_address = IMG_LowAddress(binary_image);
 	ADDRINT end_address = IMG_HighAddress(binary_image);
-	UINT32 size = end_address - start_address;
+	UINT32 size = S_ADDR_DIFF(end_address, start_address);
 	// copy the main module in a buffer in order to analyze it
 	Buffer = (unsigned char *)malloc(size);
 	PIN_SafeCopy(Buffer , (void const *)start_address , size);
@@ -252,7 +253,7 @@ VOID ProcInfo::setMainIMGAddress(ADDRINT startAddr,ADDRINT endAddr){
 
 //--------------------------------------------------Library--------------------------------------------------------------
 
-BOOL ProcInfo::isLibItemDuplicate(UINT32 address , std::vector<LibraryItem> Libraries ){
+BOOL ProcInfo::isLibItemDuplicate(ADDRINT address , std::vector<LibraryItem> Libraries ){
 	for(std::vector<LibraryItem>::iterator lib =  Libraries.begin(); lib != Libraries.end(); ++lib) {
 		if ( address == lib->StartAddress ){
 		return TRUE;
@@ -448,8 +449,8 @@ BOOL ProcInfo::getMemoryRange(ADDRINT address, MemoryRange& range){
 		MYERRORE("VirtualQuery failed");
 		return FALSE;
 	}	
-	int start =  (int)mbi.BaseAddress;
-	int end = (int)mbi.BaseAddress+ mbi.RegionSize;
+	ADDRINT start = (ADDRINT)mbi.BaseAddress;
+	ADDRINT end = (ADDRINT)mbi.BaseAddress + mbi.RegionSize;
 	//get the stack base address by searching the highest address in the allocated memory containing the stack Address
 	if((mbi.State == MEM_COMMIT || mbi.Type == MEM_MAPPED || mbi.Type == MEM_IMAGE ||  mbi.Type == MEM_PRIVATE) &&
 		start <=address && address <= end){
@@ -458,6 +459,7 @@ BOOL ProcInfo::getMemoryRange(ADDRINT address, MemoryRange& range){
 		return TRUE;
 	}
 	else{
+		/* TODO check this from calc.exe run */
 		MYERRORE("Address %08x  not inside mapped memory from %08x -> %08x or Type/State not correct ",address,start,end);
 		MYINFO("state %08x   %08x",mbi.State,mbi.Type);
 		return  FALSE;
@@ -473,7 +475,7 @@ BOOL ProcInfo::getMemoryRange(ADDRINT address, MemoryRange& range){
 	Add a section of a module ( for example the .text of the NTDLL ) in order to catch
 	writes/reads inside this area
 */
-VOID ProcInfo::addProtectedSection(ADDRINT startAddr,ADDRINT endAddr){
+VOID ProcInfo::addProtectedSection(ADDRINT startAddr, ADDRINT endAddr){
 	Section s;
 	s.begin = startAddr;
 	s.end = endAddr;
@@ -509,11 +511,28 @@ BOOL ProcInfo::isInsideProtectedSection(ADDRINT address){
 VOID ProcInfo::setCurrentMappedFiles(){
 	W::MEMORY_BASIC_INFORMATION mbi;
 	W::SIZE_T numBytes;
-	W::DWORD MyAddress = 0;	
+	ADDRINT MyAddress = 0;	
 	//delete old elements
-	mappedFiles.clear();	
-	do{
+	mappedFiles.clear();
+
+	/* TODO - Pin CRT lacks proper documentation for field type,
+	 * perhaps we can reverse-engineer it with sample programs */
+	NATIVE_PID curPid;
+	OS_GetPid(&curPid);
+	OS_MEMORY_AT_ADDR_INFORMATION info;
+	void* address = NULL;
+
+	/* DCD: VirtualQuery behaves differently under Pin 3.5? */
+	W::PVOID maxAddr = 0;
+	while (1) {
+		OS_QueryMemory(curPid, address, &info);
 		numBytes = W::VirtualQuery((W::LPCVOID)MyAddress, &mbi, sizeof(mbi));
+		
+		// workaround for not getting stuck on the last valid block
+		if (maxAddr && maxAddr >= mbi.BaseAddress) break;
+		maxAddr = mbi.BaseAddress;
+		//std::cerr << std::hex << to_string(mbi.BaseAddress) << " " << to_string(mbi.RegionSize) << std::endl;
+		
 		if(mbi.Type == MEM_MAPPED){
 			MemoryRange range;
 			range.StartAddress = (ADDRINT)mbi.BaseAddress;
@@ -522,7 +541,6 @@ VOID ProcInfo::setCurrentMappedFiles(){
 		}
 		MyAddress += mbi.RegionSize;
 	}
-	while(numBytes);
 }
 
 BOOL ProcInfo::isMappedFileAddress(ADDRINT addr){
