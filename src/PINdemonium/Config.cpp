@@ -62,17 +62,19 @@ Config::Config(){
 
 	this->heap_dir = this->base_path + "\\HEAP";
 	OS_MkDir(this->heap_dir.c_str(), 777);
-
 	//printf("HEAP DIR: %s\n" , this->heap_dir.c_str());
 
-	//std::cerr << "BASE PATH: " << this->base_path << std::endl;
 
 
 	//create the log and log files /* TODO report files was mentioned here */
 	/* TODO #ifdef LOG_WRITE_TO_FILE */
-	string file_path = this->base_path + log_filename;
+	string file_path;
+	
+	#ifdef LOG_WRITE_TO_FILE
+	file_path = this->base_path + log_filename;
 	//printf("LOG FILE PATH: %s\n" , file_path.c_str());
 	this->log_file = fopen(file_path.c_str(), "w");
+	#endif
 	
 	file_path = this->base_path + test_filename;
 	//printf("TEST FILE PATH: %s\n" , file_path.c_str());
@@ -220,8 +222,14 @@ void Config::loadJson(string config_path){
 //flush the buffer and close the file
 void Config::closeLogFile()
 {
+	#ifdef LOG_WRITE_TO_FILE
 	fflush(this->log_file);
 	fclose(this->log_file);
+	#endif
+
+	/* TODO provisionally here*/
+	fflush(this->test_file);
+	fclose(this->test_file);
 }
 
 //return the file pointer
