@@ -198,9 +198,14 @@ float ProcInfo::GetEntropy(){
 	//calculate the entropy only on the main module address space
 	ADDRINT start_address = IMG_LowAddress(binary_image);
 	ADDRINT end_address = IMG_HighAddress(binary_image);
-	UINT32 size = S_ADDR_DIFF(end_address, start_address);
+	UINT32 size = S_ADDR_DIFF(start_address, end_address);
 	// copy the main module in a buffer in order to analyze it
 	Buffer = (unsigned char *)malloc(size);
+	if (Buffer == nullptr) {
+		std::cerr << "ERRORE MALLOC" << std::endl;
+		#include "porting.h"
+		std::cerr << to_string(start_address) << " " << to_string(size) << std::endl;
+	}
 	PIN_SafeCopy(Buffer , (void const *)start_address , size);
 	// set to all zero the matrix of the bytes occurrence
 	memset(Entries, 0, sizeof(unsigned long) * 256);
