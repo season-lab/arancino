@@ -49,7 +49,9 @@ VOID FilterHandler::setFilters(const string filters){
 	}
 	for(std::vector<string>::iterator filt = filterVect.begin(); filt != filterVect.end(); ++filt) {	
 		MYINFO("Activating filter %s",(*filt).c_str() );
-		filterExecutionFlag += pow(2.0,filterMap[*filt]); //bitmap representing active flags
+		//bitmap representing active flags
+		filterExecutionFlag += 1 << filterMap[*filt]; 
+		//filterExecutionFlag += pow(2.0,filterMap[*filt]); 
 	}	   	
 }
 

@@ -18,7 +18,7 @@ namespace W{
 #define SCYLLA_ERROR_IAT_NOT_FIXED -1
 #define SCYLLA_SUCCESS_FIX 0
 
-typedef UINT32 (* def_ScyllaDumpAndFix)(int pid, int oep, W::WCHAR * output_file,W::WCHAR * base_path, W::WCHAR * tmp_dump);
+typedef UINT32 (* def_ScyllaDumpAndFix)(int pid, W::DWORD_PTR oep, W::WCHAR * output_file,W::WCHAR * base_path, W::WCHAR * tmp_dump);
 typedef UINT32 (* def_ScyllaWrapAddSection)(const W::WCHAR * dump_path , const W::CHAR * sectionName, W::DWORD sectionSize, UINT32 offset , W::BYTE * sectionData);
 
 class ScyllaWrapperInterface
@@ -27,7 +27,7 @@ class ScyllaWrapperInterface
 public:
 	static ScyllaWrapperInterface* getInstance();
 	//Create a process which launch the ScyllaDumper.exe executable to dump the binary and fix the IAT
-	UINT32 launchScyllaDumpAndFix(int pid, int curEip, string dumpFileName, string tmpDump, bool call_plugin_flag, string plugin_full_path, string reconstructed_imports_file);
+	UINT32 launchScyllaDumpAndFix(int pid, ADDRINT curEip, string dumpFileName, string tmpDump, bool call_plugin_flag, string plugin_full_path, string reconstructed_imports_file);
 	//interface to the ScyllaWrapper.dll
 	def_ScyllaDumpAndFix	ScyllaDumpAndFix;
 	def_ScyllaWrapAddSection ScyllaWrapAddSection;

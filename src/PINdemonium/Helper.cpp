@@ -47,22 +47,21 @@ bool Helper::writeBufferToFile(unsigned char *buffer,UINT32 dwBytesToWrite,strin
 
     W::DWORD dwBytesWritten = 0;
 
-	  W::HANDLE hFile = W::CreateFile(path.c_str(),                // name of the write
-                       GENERIC_WRITE,          // open for writing
-                       0,                      // do not share
-                       NULL,                   // default security
-                       CREATE_NEW,             // create new file only
-                       FILE_ATTRIBUTE_NORMAL,  // normal file
-                       NULL);                  // no attr. template
-
-
-    return  W::WriteFile( 
-                    hFile,           // open file handle
-                    buffer,      // start of data to write
-                    dwBytesToWrite,  // number of bytes to write
-                    &dwBytesWritten, // number of bytes that were written
-                    NULL);            // no overlapped structure
-
+	W::HANDLE hFile = W::CreateFile(path.c_str(),           // name of the write
+									GENERIC_WRITE,          // open for writing
+									0,                      // do not share
+									NULL,                   // default security
+									CREATE_NEW,             // create new file only
+									FILE_ATTRIBUTE_NORMAL,  // normal file
+									NULL);                  // no attr. template
+	
+	// ? : trick to avoid warning from differences between W::BOOL and C++ bool
+	return  W::WriteFile(hFile,           // open file handle
+						buffer,      // start of data to write
+						dwBytesToWrite,  // number of bytes to write
+						&dwBytesWritten, // number of bytes that were written
+						NULL)            // no overlapped structure
+						? true : false; 
 }
 
 

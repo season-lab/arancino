@@ -1,6 +1,5 @@
 #include "WriteInterval.h"
 
-
 //set the new WriteInterval object with the begin address and the end address of the current write operation
 WriteInterval::WriteInterval(ADDRINT addr_begin, ADDRINT addr_end, BOOL heap_flag)
 {
@@ -31,7 +30,7 @@ UINT32 WriteInterval::getBrokenFlag(){
 }
 
 UINT32 WriteInterval::getThreshold(){
-	return (this->addr_end - this->addr_begin)/20;
+	return (UINT32)((this->addr_end - this->addr_begin)/20); // cast should be fine (again)
 }
 
 UINT32 WriteInterval::getCurrNumberJMP(){

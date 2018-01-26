@@ -35,6 +35,7 @@ documentation and/or software.
  
 /* system implementation headers */
 #include <cstdio>
+#include <string> // see operator<<
  
  
 // Constants for MD5Transform routine.
@@ -111,7 +112,7 @@ MD5::MD5()
 MD5::MD5(const std::string &text)
 {
   init();
-  update(text.c_str(), text.length());
+  update(text.c_str(), (size_type)text.length());
   finalize();
 }
  
@@ -248,7 +249,7 @@ void MD5::transform(const uint1 block[blocksize])
  
 // MD5 block update operation. Continues an MD5 message-digest
 // operation, processing another message block
-void MD5::update(const unsigned char input[], size_type length)
+void MD5::update(const unsigned char *input, size_type length)
 {
   // compute number of bytes mod 64
   size_type index = count[0] / 8 % blocksize;
@@ -286,7 +287,7 @@ void MD5::update(const unsigned char input[], size_type length)
 //////////////////////////////
  
 // for convenience provide a verson with signed char
-void MD5::update(const char input[], size_type length)
+void MD5::update(const char *input, size_type length)
 {
   update((const unsigned char*)input, length);
 }

@@ -213,7 +213,7 @@ float ProcInfo::GetEntropy(){
 		if (Temp > 0)
 			Entropy += - Temp*(log(Temp)*d1log2); 
 	}
-	return Entropy;
+	return (float)Entropy; // this cast should be just fine!
 }
 
 // 

@@ -84,7 +84,7 @@ void HookSyscalls::NtAllocateVirtualMemoryHook(syscall_t *sc , CONTEXT *ctx , SY
     ProcInfo *proc_info = ProcInfo::getInstance();
 	HeapZone hz;
 	hz.begin = heap_address;
-	hz.size = region_size;
+	hz.size = (UINT32)region_size; // reasonable :)
     hz.end = region_size+heap_address;
 	hz.version = 0; // version 0 of this heap
 
@@ -116,7 +116,8 @@ void HookSyscalls::NtMapViewOfSectionHook(syscall_t *sc , CONTEXT *ctx , SYSCALL
 	// MYINFO("-------------------- Write Injection through NtMapViewOfSectionHook pid %d  baseAddr %08x Size %08x",pid,*BaseAddress,*ViewSize);
 	if(pid != W::GetCurrentProcessId()){
 		MYINFO("Write Injection through NtMapViewOfSectionHook pid %d  baseAddr %08x Size %08x",pid,*BaseAddress,*ViewSize);
-		ProcessInjectionModule::getInstance()->AddInjectedWrite((ADDRINT)*BaseAddress, *ViewSize,  pid );
+		// UINT32 cast for size should be reasonable
+		ProcessInjectionModule::getInstance()->AddInjectedWrite((ADDRINT)*BaseAddress, (UINT32)*ViewSize,  pid );
 	}
 	ADDRINT base_address =  *(ADDRINT *) BaseAddress;
 	ProcInfo *proc_info = ProcInfo::getInstance();

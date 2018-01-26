@@ -34,7 +34,7 @@ public:
 	string getScyllaDumperPath();
 	string getScyllaWrapperPath();
 	string getScyllaPluginsPath();
-	int getDumpNumber();
+	UINT32 getDumpNumber();
 	string getFilteredWrites();
 	
 	

@@ -8,10 +8,10 @@ private:
 	string name;
 	bool result;
 	ADDRINT prev_ip;
-	int length;
+	ADDRINT length;
 public:
 	ReportLongJump(void);
-	ReportLongJump(bool res,ADDRINT prev_ip, int len);
+	ReportLongJump(bool res, ADDRINT prev_ip, ADDRINT len);
 	Json::Value toJson();
 	
 };

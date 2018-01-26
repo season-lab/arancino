@@ -158,7 +158,7 @@ UINT32 IATAutoFix(DWORD pid, DWORD_PTR oep, WCHAR *outputFile, WCHAR * cur_path,
 }
 
 
-UINT32 ScyllaDumpAndFix(int pid, int oep, WCHAR * output_file, WCHAR * cur_path, WCHAR * tmp_dump, WCHAR *reconstructed_imports_file){
+UINT32 ScyllaDumpAndFix(int pid, DWORD_PTR oep, WCHAR * output_file, WCHAR * cur_path, WCHAR * tmp_dump, WCHAR *reconstructed_imports_file){
 	return IATAutoFix(pid, oep, output_file, cur_path, tmp_dump,reconstructed_imports_file);
 }
 

@@ -5,7 +5,7 @@ ReportLongJump::ReportLongJump(void)
 {
 }
 
-ReportLongJump::ReportLongJump(bool res,ADDRINT prev_ip, int len){
+ReportLongJump::ReportLongJump(bool res,ADDRINT prev_ip, ADDRINT len){
 	this->name = "LongJumpHeuristic";
 	this->result = res;
 	this->prev_ip = prev_ip;

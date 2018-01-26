@@ -25,7 +25,7 @@ ScyllaWrapperInterface::ScyllaWrapperInterface(void)
  call_plugin_falg : specify if a plugin has to be called if the iat-fix fails
  plugin_full_path : full path to the dll containing the plugin
 **/
-UINT32 ScyllaWrapperInterface::launchScyllaDumpAndFix(int pid, int curEip, std::string outputFile, std::string tmpDump,  bool call_plugin_flag, std::string plugin_full_path, std::string reconstructed_imports_file){	
+UINT32 ScyllaWrapperInterface::launchScyllaDumpAndFix(int pid, ADDRINT curEip, std::string outputFile, std::string tmpDump,  bool call_plugin_flag, std::string plugin_full_path, std::string reconstructed_imports_file){
 	std::string scylla = config->getScyllaDumperPath();
 	W::DWORD exitCode;
 	//Creating the string containing the arguments to pass to the ScyllaTest.exe

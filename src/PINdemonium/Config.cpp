@@ -96,7 +96,7 @@ string Config::getHeapDir(){
 	return this->heap_dir;
 }
 
-int Config::getDumpNumber(){
+UINT32 Config::getDumpNumber(){
 	return this->dump_number;
 }
 
