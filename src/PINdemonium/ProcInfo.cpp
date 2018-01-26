@@ -201,20 +201,14 @@ float ProcInfo::GetEntropy(){
 	UINT32 size = S_ADDR_DIFF(start_address, end_address);
 	// copy the main module in a buffer in order to analyze it
 	Buffer = (unsigned char *)malloc(size);
-	if (Buffer == nullptr) {
-		std::cerr << "ERRORE MALLOC" << std::endl;
-		#include "porting.h"
-		std::cerr << to_string(start_address) << " " << to_string(size) << std::endl;
-	}
 	PIN_SafeCopy(Buffer , (void const *)start_address , size);
 	// set to all zero the matrix of the bytes occurrence
 	memset(Entries, 0, sizeof(unsigned long) * 256);
 	// increment the counter of the current read byte (Buffer[i])in the occurence matrix (Entries)
-	for (unsigned long i = 0; i < size; i++)
+	for (size_t i = 0; i < size; i++)
 		Entries[Buffer[i]]++;
 	// do the shannon formula on the occurence matrix ( H = sum(P(i)*log2(P(i)) )
-	for (unsigned long i = 0; i < 256; i++)
-	{
+	for (size_t i = 0; i < 256; i++) {
 		double Temp = (double) Entries[i] / (double) size;
 		if (Temp > 0)
 			Entropy += -Temp*(log(Temp)*d1log2);
@@ -518,31 +512,30 @@ VOID ProcInfo::setCurrentMappedFiles(){
 	W::MEMORY_BASIC_INFORMATION mbi;
 	W::SIZE_T numBytes;
 	ADDRINT MyAddress = 0;	
-	//delete old elements
-	mappedFiles.clear();
+	mappedFiles.clear(); // delete old entries
 
-	/* TODO - Pin CRT lacks proper documentation for field type,
-	 * perhaps we can reverse-engineer it with sample programs */
-	NATIVE_PID curPid;
-	OS_GetPid(&curPid);
-	OS_MEMORY_AT_ADDR_INFORMATION info;
-	void* address = NULL;
+	/* TODO - PinCRT lacks proper documentation for the 'type' field,
+	 * perhaps we can reverse-engineer it using sample programs */
+	//NATIVE_PID curPid;
+	//OS_GetPid(&curPid);
+	//OS_MEMORY_AT_ADDR_INFORMATION info;
+	//void* address = NULL;
 
 	/* DCD: VirtualQuery behaves differently under Pin 3.5? */
 	W::PVOID maxAddr = 0;
 	while (1) {
-		OS_QueryMemory(curPid, address, &info);
+		//OS_QueryMemory(curPid, address, &info);
 		numBytes = W::VirtualQuery((W::LPCVOID)MyAddress, &mbi, sizeof(mbi));
 		
-		// workaround for not getting stuck on the last valid block
+		// workaround for not getting stuck on the last valid block (see above)
 		if (maxAddr && maxAddr >= mbi.BaseAddress) break;
 		maxAddr = mbi.BaseAddress;
 		//std::cerr << std::hex << to_string(mbi.BaseAddress) << " " << to_string(mbi.RegionSize) << std::endl;
 		
-		if(mbi.Type == MEM_MAPPED){
+		if (mbi.Type == MEM_MAPPED){
 			MemoryRange range;
 			range.StartAddress = (ADDRINT)mbi.BaseAddress;
-			range.EndAddress = (ADDRINT)mbi.BaseAddress+mbi.RegionSize;
+			range.EndAddress = (ADDRINT)mbi.BaseAddress + mbi.RegionSize;
 			mappedFiles.push_back(range);
 		}
 		MyAddress += mbi.RegionSize;
@@ -629,7 +622,7 @@ VOID ProcInfo::addCodePageDataAddress(){
 //Adding the pShimDataAddress to the generic Memory Ranges
 VOID ProcInfo::addpShimDataAddress(){
 	MemoryRange pShimData;
-	if(getMemoryRange((ADDRINT) peb->pShimData,pShimData)){
+	if(getMemoryRange((ADDRINT) peb->pShimData, pShimData)){
 		genericMemoryRanges.push_back(pShimData);
 	}
 }

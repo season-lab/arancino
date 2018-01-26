@@ -17,7 +17,6 @@ namespace W {
 	#include "windows.h"
 }
 
-
 OepFinder oepf;
 PINshield thider;
 HookFunctions hookFun;
@@ -25,50 +24,51 @@ clock_t tStart;
 ProcInfo *proc_info = ProcInfo::getInstance();
 PolymorphicCodeHandlerModule pcpatcher;
 
-//------------------------------Custom option for our FindOEPpin.dll-------------------------------------------------------------------------
-
+/** Custom options for our PIN tool **/
 KNOB <UINT32> KnobInterWriteSetAnalysis(KNOB_MODE_WRITEONCE, "pintool",
-    "iwae", "0" , "specify if you want or not to track the inter_write_set analysis dumps and how many jump");
+    "iwae", "0" , "specify if you want to track the inter_write_set analysis dumps and how many jump");
 
 KNOB <BOOL> KnobAntiEvasion(KNOB_MODE_WRITEONCE, "pintool",
-    "antiev", "false" , "specify if you want or not to activate the anti evasion engine");
+    "antiev", "false" , "specify if you want to activate the anti-evasion engine");
 
 KNOB <BOOL> KnobAntiEvasionINSpatcher(KNOB_MODE_WRITEONCE, "pintool",
-    "antiev-ins", "false" , "specify if you want or not to activate the single patching of evasive instruction as int2e, fsave...");
+    "antiev-ins", "false" , "specify if you want to activate the single patching of evasive instruction as int2e, fsave...");
 
 KNOB <BOOL> KnobAntiEvasionSuspiciousRead(KNOB_MODE_WRITEONCE, "pintool",
-    "antiev-sread", "false" , "specify if you want or not to activate the handling of suspicious reads");
+    "antiev-sread", "false" , "specify if you want to activate the handling of suspicious reads");
 
 KNOB <BOOL> KnobAntiEvasionSuspiciousWrite(KNOB_MODE_WRITEONCE, "pintool",
-    "antiev-swrite", "false" , "specify if you want or not to activate the handling of suspicious writes");
+    "antiev-swrite", "false" , "specify if you want to activate the handling of suspicious writes");
 
 KNOB <BOOL> KnobUnpacking(KNOB_MODE_WRITEONCE, "pintool",
-    "unp", "false" , "specify if you want or not to activate the unpacking engine");
+    "unp", "false" , "specify if you want to activate the unpacking engine");
 
 KNOB <UINT32> KnobSkipDump(KNOB_MODE_WRITEONCE, "pintool",
-    "skip", "0" , "specify how many times you want to skip the dump process whe wxorx rule is broken");
+    "skip", "0" , "specify how many times you want to skip the dump process when wxorx rule is broken");
 
 KNOB <BOOL> KnobAdvancedIATFixing(KNOB_MODE_WRITEONCE, "pintool",
-    "adv-iatfix", "false" , "specify if you want or not to activate the advanced IAT fix technique");
+    "adv-iatfix", "false" , "specify if you want to activate the advanced IAT fix technique");
 
 KNOB <BOOL> KnobPolymorphicCodePatch(KNOB_MODE_WRITEONCE, "pintool",
-    "poly-patch", "false" , "specify if you want or not to activate the patch in order to avoid crash during the instrumentation of polymorphic code");
+    "poly-patch", "false" , "specify if you want to activate the patch in order to avoid crash during the instrumentation of polymorphic code");
 
 KNOB <BOOL> KnobNullyfyUnknownIATEntry(KNOB_MODE_WRITEONCE, "pintool",
-    "nullify-unk-iat", "false" , "specify if you want or not to nullify the IAT entry not detected as correct API by the tool\n NB: THIS OPTION WORKS ONLY IF THE OPTION adv-iatfix IS ACTIVE!");
+    "nullify-unk-iat", "false" , "specify if you want to nullify the IAT entry not detected as correct API by the tool"
+								 "\n NB: THIS OPTION WORKS ONLY IF THE OPTION adv-iatfix IS ACTIVE!");
 
 KNOB <string> KnobPluginSelector(KNOB_MODE_WRITEONCE, "pintool",
     "plugin", "" , "specify the name of the plugin you want to launch if the IAT reconstructor fails (EX : PINdemoniumStolenAPIPlugin.dll)");
+/** End of KNOB section **/
 
-//------------------------------Custom option for our FindOEPpin.dll-------------------------------------------------------------------------
 
-
-// This function is called when the application exits
-// - print out the information relative to the current run
+// Print info for the current run when the application is exiting
 VOID Fini(INT32 code, VOID *v){
+	// note: PIN_AddPrepareForFiniFunction() not needed at the moment
+
 	//inspect the write set at the end of the execution
-	WxorXHandler *wxorxHandler = WxorXHandler::getInstance();
+	WxorXHandler *wxorxHandler = WxorXHandler::getInstance(); /* TODO: this is not used? */
 	//MYINFO("WRITE SET SIZE: %d", wxorxHandler->getWritesSet().size());
+
 	//get the execution time
 	MYPRINT("\n\n\nTotal execution Time: %.2fs", (double)(clock() - tStart)/CLOCKS_PER_SEC);
 	CLOSELOG();
@@ -77,13 +77,12 @@ VOID Fini(INT32 code, VOID *v){
 
 BOOL followChild(CHILD_PROCESS childProcess, VOID *val)
 {
-
 	printf("[INFO] A new process has been spawned!\n");
 	MYINFO("---------------------------------------------------");
 	MYINFO("-----------A NEW PROCESS HAS BEEN SPAWNED----------");
 	MYINFO("-------------[PinDemonium injected]---------------");
 	MYINFO("---------------------------------------------------");
-	return 1;
+	return true;
 }
 
 // - usage 
@@ -97,64 +96,57 @@ INT32 Usage(){
 // - Add filtered library
 // - Add protected libraries 
 void imageLoadCallback(IMG img,void *){
-	Section item;
 	static int va_hooked = 0;
 	ProcInfo *proc_info = ProcInfo::getInstance();
 	FilterHandler *filterHandler = FilterHandler::getInstance();
-	//get the initial entropy of the PE
-	//we have to consder only the main executable and avìvoid the libraries
-	if(IMG_IsMainExecutable(img)){		
-		ADDRINT startAddr = IMG_LowAddress(img);
-		ADDRINT endAddr = IMG_HighAddress(img);
-		proc_info->setMainIMGAddress(startAddr, endAddr);
-		//get the  address of the first instruction
-		proc_info->setFirstINSaddress(IMG_Entry(img));
-		//get the program name
-		proc_info->setProcName(IMG_Name(img));
-		//get the initial entropy
-		MYINFO("----------------------------------------------");
-		float initial_entropy = proc_info->GetEntropy();
-		proc_info->setInitialEntropy(initial_entropy);
-		MYINFO("----------------------------------------------");	
-		//create Report File
-		Report::getInstance()->initializeReport(proc_info->getProcName(), startAddr, endAddr , initial_entropy);
-		//retrieve the section of the PE
-		for( SEC sec= IMG_SecHead(img); SEC_Valid(sec); sec = SEC_Next(sec) ){
-			item.name = SEC_Name(sec);
-			item.begin = SEC_Address(sec);
-			item.end = item.begin + SEC_Size(sec);
-			proc_info->insertSection(item);
-		}
-		proc_info->PrintSections();
-	}
-	//build the filtered libtrary list
+
+	// get image info
 	ADDRINT startAddr = IMG_LowAddress(img);
 	ADDRINT endAddr = IMG_HighAddress(img);
-	const string name = IMG_Name(img); 
-	if(!IMG_IsMainExecutable(img)){
-		
-		//*** If you need to protect other sections of other dll put them here ***
-		if(name.find("ntdll")!= std::string::npos){		
-		  for( SEC sec= IMG_SecHead(img); SEC_Valid(sec); sec = SEC_Next(sec) ){
-			if(strcmp(SEC_Name(sec).c_str(),".text")==0){
-				MYINFO("Adding NTDLL %08x  %08x",SEC_Address(sec),SEC_Address(sec)+SEC_Size(sec));
-				proc_info->addProtectedSection(SEC_Address(sec),SEC_Address(sec)+SEC_Size(sec));
-			}
-	      }
+	const string name = IMG_Name(img);
+	
+	if(IMG_IsMainExecutable(img)){ // get initial entropy of the PE	(no libraries)
+		proc_info->setMainIMGAddress(startAddr, endAddr);
+		// get the address of the first instruction
+		proc_info->setFirstINSaddress(IMG_Entry(img));
+		// get the program name
+		proc_info->setProcName(name);
+		// get the initial entropy
+		float initial_entropy = proc_info->GetEntropy();
+		//MYINFO("----------------------------------------------");
+		proc_info->setInitialEntropy(initial_entropy);
+		//MYINFO("----------------------------------------------");	
+		// create Report File
+		Report::getInstance()->initializeReport(proc_info->getProcName(), startAddr, endAddr , initial_entropy);
+		// forward pass over all sections in the PE
+		for (SEC sec= IMG_SecHead(img); SEC_Valid(sec); sec = SEC_Next(sec)) {
+			proc_info->insertSection(Section(sec));
 		}
-		// check if there are some fuction that has top be hooked in this DLL
+		proc_info->PrintSections();
+	} else { // build the filtered library list
+		/* if you need to protect sections of other DLLs put them here */
+		if (name.find("ntdll") != std::string::npos) { /* TODO: add more libs */
+			for (SEC sec= IMG_SecHead(img); SEC_Valid(sec); sec = SEC_Next(sec)) {
+				if (SEC_Name(sec).compare(".text") == 0) {
+					MYINFO("Adding NTDLL %08x  %08x",SEC_Address(sec), SEC_Address(sec)+SEC_Size(sec));
+					proc_info->addProtectedSection(SEC_Address(sec), SEC_Address(sec)+SEC_Size(sec));
+				}
+			}
+		}
+		// look for functions that have to be hooked inside this DLL
 		hookFun.hookDispatcher(img);
-		// check if we have to filter this library during thwe instrumentation
-		proc_info->addLibrary(name,startAddr,endAddr);
-		if(filterHandler->IsNameInFilteredArray(name)){
-			filterHandler->addToFilteredLibrary(name,startAddr,endAddr);
-			MYINFO("Added to the filtered array the module %s\n" , name);
+
+		// check whether we have to filter this library during instrumentation
+		proc_info->addLibrary(name, startAddr, endAddr);
+		if(filterHandler->isNameInFilteredArray(name)){
+			filterHandler->addToFilteredLibrary(name, startAddr, endAddr);
+			MYINFO("Added to the filtered array the module %s\n", name);
 		}
 	}
 }
 
 // trigger the instrumentation routine for each instruction
-void Instruction(INS ins,void *v){
+void instrumentInstruction(INS ins,void *v){
 	// check the current mode of operation
 	Config *config = Config::getInstance();
 	if(config->ANTIEVASION_MODE){
@@ -167,14 +159,14 @@ void Instruction(INS ins,void *v){
 }
 
 // trigger the instrumentation routine for each trace collected (useful in order to spiot polymorphic code on the current trace)
-VOID Trace(TRACE trace,void *v){
+VOID instrumentTrace(TRACE trace, void *v){
 	// polymorphic code handler
 	pcpatcher.inspectTrace(trace);
 }
 
 
 // - retrive the stack base address
-static VOID OnThreadStart(THREADID, CONTEXT *ctxt, INT32, VOID *){
+static VOID onThreadStart(THREADID, CONTEXT *ctxt, INT32, VOID *){
 	ADDRINT stackBase = PIN_GetContextReg(ctxt, REG_STACK_PTR);
 	ProcInfo *pInfo = ProcInfo::getInstance();
 	pInfo->addThreadStackAddress(stackBase);
@@ -246,37 +238,41 @@ int main(int argc, char * argv[]){
 
 	//If we want to debug the program manually setup the proper options in order to attach an external debugger
 	if(Config::ATTACH_DEBUGGER){
-		initDebug();
+		initDebug(); /* TODO */
 	}
 	
-	//get the start time of the execution (benchmark)
+	// get the start time of the execution (benchmark)
 	tStart = clock();	
-	// Initialize pin
+
+	// initialize PIN
 	PIN_InitSymbols();
 	if (PIN_Init(argc, argv)) return Usage();
 
-	//Register PIN Callbacks
-	INS_AddInstrumentFunction(Instruction,0);
-	PIN_AddThreadStartFunction(OnThreadStart, 0);
+	// register PIN callbacks
+	INS_AddInstrumentFunction(instrumentInstruction, 0);
+	PIN_AddThreadStartFunction(onThreadStart, 0);
 	IMG_AddInstrumentFunction(imageLoadCallback, 0);
 	PIN_AddFiniFunction(Fini, 0);
-	PIN_AddInternalExceptionHandler(ExceptionHandler,NULL);
+	PIN_AddInternalExceptionHandler(ExceptionHandler, NULL);
 	PIN_AddFollowChildProcessFunction(followChild, NULL);
 	
+	// parse KNOB args and JSON config file
 	printf("[INFO] Configuring Pintool\n");
-	//get theknob args
-	ConfigureTool();	
+	ConfigureTool();
 	if(Config::getInstance()->POLYMORPHIC_CODE_PATCH){
-		TRACE_AddInstrumentFunction(Trace,0);
+		TRACE_AddInstrumentFunction(instrumentTrace,0);
 	}
+
+	// bootstrap memory information
 	proc_info->addProcAddresses();
 
-	//init the hooking system
+	// initialize the hooking system
 	HookSyscalls::enumSyscalls();
 	HookSyscalls::initHooks();
+
 	printf("[INFO] Starting instrumented program\n\n");
 	//MYINFO(" knob inizio %d %d %d",Config::getInstance()->getDumpNumber(), Config::getInstance()->getDumpNumber(),Config::getInstance()->WRITEINTERVAL_MAX_NUMBER_JMP);
 	PIN_StartProgram();	
+
 	return 0;
-	
 }

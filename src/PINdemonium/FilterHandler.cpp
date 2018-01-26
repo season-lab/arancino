@@ -81,10 +81,12 @@ BOOL FilterHandler::isLibStackWrite(ADDRINT addr,ADDRINT eip){
 }
 
 
-BOOL FilterHandler::IsNameInFilteredArray(std::string img_name){
+BOOL FilterHandler::isNameInFilteredArray(std::string img_name){
 	for(std::vector<string>::iterator name = this->filtered_library_name.begin(); name != filtered_library_name.end(); ++name){
-		if(img_name.find(name->c_str()) != std::string::npos ){
-			this->filtered_library_name.erase(name); // WARNING-> SIDE EFFECT: remove the element from the name of the library filtered ( brute optimization: basically when we have registered the filtered library in the filtered_library vector we can avoid to re-check another time the name )
+		if (img_name.find(name->c_str()) != std::string::npos ){
+			// WARNING: as a side-effect, it removes a found element from the list
+			/* TODO: do we really need this optimization? */
+			this->filtered_library_name.erase(name);
 			return TRUE;
 		} 
 	}

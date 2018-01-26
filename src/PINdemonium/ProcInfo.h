@@ -68,6 +68,13 @@ struct Section {
  ADDRINT begin;
  ADDRINT end;
  string name;
+
+ Section() {}
+ Section(SEC &sec) {
+	 this->name = SEC_Name(sec);
+	 this->begin = SEC_Address(sec);
+	 this->end = this->begin + SEC_Size(sec);
+ }
 };
 
 struct HeapZone {
@@ -109,10 +116,10 @@ public:
 	void setPopadFlag(BOOL flag);
 	void setProcName(string name);
 	void setStartTimer(clock_t t);
-	void setMainIMGAddress(ADDRINT startAddress,ADDRINT endAddr);	
+	void setMainIMGAddress(ADDRINT startAddress, ADDRINT endAddr);	
 	/* debug */
-	void PrintStartContext();
-	void PrintCurrContext();
+	//void PrintStartContext();
+	//void PrintCurrContext();
 	void PrintSections();
 	void printHeapList();
 	/* helper */
@@ -122,9 +129,9 @@ public:
 	void insertDumpedHeapZone(std::string hz_data_md5, std::string hz_bin_path);
 	void deleteHeapZone(std::string md5_to_remove);
 	bool searchHeapMap(ADDRINT ip);
-	HeapZone *getHeapZoneByIndex(UINT32 index);
+	//HeapZone *getHeapZoneByIndex(UINT32 index);
 	float GetEntropy();
-	std::vector<HeapZone> getWhitelistHeap();
+	//std::vector<HeapZone> getWhitelistHeap();
 	void insertInJmpBlacklist(ADDRINT ip);
 	BOOL isInsideJmpBlacklist(ADDRINT ip);
 	BOOL isInsideMainIMG(ADDRINT address);
