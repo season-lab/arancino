@@ -1,5 +1,6 @@
 #include "ProcInfo.h"
 #include "porting.h"
+#include "math.h"
 
 // singleton
 ProcInfo* ProcInfo::instance = 0;
@@ -211,7 +212,7 @@ float ProcInfo::GetEntropy(){
 	{
 		double Temp = (double) Entries[i] / (double) size;
 		if (Temp > 0)
-			Entropy += - Temp*(log(Temp)*d1log2); 
+			Entropy += -Temp*(log(Temp)*d1log2);
 	}
 	return (float)Entropy; // this cast should be just fine!
 }
