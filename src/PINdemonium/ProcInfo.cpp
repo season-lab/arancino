@@ -2,6 +2,8 @@
 #include "porting.h"
 #include "math.h"
 
+#include <algorithm>
+
 // singleton
 ProcInfo* ProcInfo::instance = 0;
 
@@ -304,15 +306,21 @@ string ProcInfo::libToString(LibraryItem lib){
 Check the current name against a set of whitelisted library names
 (IDEA don't track kernel32.dll ... but track custom dll which may contain malicious payloads)
 **/
-BOOL ProcInfo::isKnownLibrary(const string name,ADDRINT startAddr,ADDRINT endAddr){	
-	
-	BOOL isSystemDll = name.find("C:\\Windows\\system32") == 0;
-	isSystemDll = isSystemDll || name.find("C:\\Windows\\SYSTEM32") == 0;
+BOOL ProcInfo::isKnownLibrary(const string name, ADDRINT startAddr, ADDRINT endAddr){	
+	char* lcName = strdup(name.c_str());
+	size_t len = strlen(lcName);
+	for (size_t i = 0; i < len; ++i) {
+		lcName[i] = tolower(lcName[i]);
+	}	
+	// use lowercase for earch
+	BOOL isSystemDll = !strstr(lcName, "c:\\windows\\system32");
+	isSystemDll = isSystemDll || !strstr(lcName, "c:\\windows\\syswow64");
+
+	free(lcName);
 	//MYINFO("Dll Name %s is system %d",name.c_str(),isSystemDll);
-	if(isSystemDll){
+	if (isSystemDll) {
 		return TRUE;
-	}
-	else{
+	} else {
 		MYINFO("Found Unknown library %s from %08x  to   %08x: start tracking its instruction\n",name.c_str(),startAddr,endAddr);
 		return FALSE;
 	}
