@@ -1,7 +1,7 @@
 #pragma once
 #include "Pin.h"
 #include "Debug.h"
-#include "Log.h"
+//#include "Log.h"
 #include "FilterHandler.h"
 #include "PatternMatchModule.h"
 #include "FakeReadHandler.h"
@@ -23,6 +23,6 @@ private:
 	FakeReadHandler fakeMemH;
 	FakeWriteHandler fakeWriteH;
 	BOOL firstRead;
-	void ScanForMappedFiles();	
+	//void ScanForMappedFiles();	
 };
 

@@ -168,9 +168,6 @@
     <ClCompile Include="FakeReadHandler.cpp">
       <Filter>Source Files\PINShield</Filter>
     </ClCompile>
-    <ClCompile Include="Log.cpp">
-      <Filter>Source Files\Helpers</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README">
@@ -293,9 +290,6 @@
       <Filter>Header Files\PINShield</Filter>
     </ClInclude>
     <ClInclude Include="porting.h">
-      <Filter>Header Files\Helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="Log.h">
       <Filter>Header Files\Helpers</Filter>
     </ClInclude>
   </ItemGroup>

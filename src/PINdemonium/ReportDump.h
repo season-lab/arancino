@@ -2,7 +2,7 @@
 #include "pin.H"
 #include "ReportObject.h"
 #include "Debug.h"
-#include "Log.h"
+//#include "Log.h"
 
 class ReportDump : public ReportObject
 {

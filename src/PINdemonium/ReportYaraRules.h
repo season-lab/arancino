@@ -1,7 +1,7 @@
 #pragma once
 #include "ReportObject.h"
 #include "Debug.h"
-#include "Log.h"
+//#include "Log.h"
 
 class ReportYaraRules : public ReportObject
 {

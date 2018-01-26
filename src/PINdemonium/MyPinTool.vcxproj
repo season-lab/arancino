@@ -302,12 +302,6 @@
     <ClCompile Include="HookFunctions.cpp" />
     <ClCompile Include="HookSyscalls.cpp" />
     <ClCompile Include="jsoncpp.cpp" />
-    <ClCompile Include="Log.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="PatternMatchModule.cpp" />
     <ClCompile Include="PINshield.cpp" />
@@ -350,7 +344,6 @@
     <ClInclude Include="HookFunctions.h" />
     <ClInclude Include="HookSyscalls.h" />
     <ClInclude Include="json.h" />
-    <ClInclude Include="Log.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="PatternMatchModule.h" />
     <ClInclude Include="PINshield.h" />

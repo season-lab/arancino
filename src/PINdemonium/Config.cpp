@@ -67,7 +67,6 @@ Config::Config(){
 
 
 	//create the log and log files /* TODO report files was mentioned here */
-	/* TODO #ifdef LOG_WRITE_TO_FILE */
 	string file_path;
 	
 	#ifdef LOG_WRITE_TO_FILE
