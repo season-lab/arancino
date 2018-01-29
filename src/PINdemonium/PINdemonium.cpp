@@ -17,6 +17,7 @@ namespace W {
 	#include "windows.h"
 }
 
+syscall_t scCallbackArray[256] = { 0 }; /* TODO: 256 threads or what? */
 OepFinder oepf;
 PINshield thider;
 HookFunctions hookFun;
@@ -266,7 +267,7 @@ int main(int argc, char * argv[]){
 
 	// initialize the hooking system
 	HookSyscalls::enumSyscalls();
-	HookSyscalls::initHooks();
+	HookSyscalls::initHooks(scCallbackArray);
 
 	printf("[INFO] Starting instrumented program\n\n");
 	//MYINFO(" knob inizio %d %d %d",Config::getInstance()->getDumpNumber(), Config::getInstance()->getDumpNumber(),Config::getInstance()->WRITEINTERVAL_MAX_NUMBER_JMP);

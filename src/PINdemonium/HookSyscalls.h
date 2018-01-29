@@ -28,7 +28,7 @@ typedef struct _syscall_t {
             ADDRINT arg4, arg5, arg6, arg7;
         };
     };
-} syscall_t;
+} syscall_t; // TODO is this fine with Win64?
 
 //informations returned by the NtSystemQueryInformation
 typedef struct _SYSTEM_PROCESS_INFO
@@ -85,7 +85,7 @@ class HookSyscalls
 {
 public:
 	static void enumSyscalls();
-	static void initHooks();
+	static void initHooks(syscall_t *callbackArray);
 
 private:
 	//Hooks
@@ -106,14 +106,14 @@ private:
 	static void NtResumeThreadHook(syscall_t *sc , CONTEXT *ctx , SYSCALL_STANDARD std);
 	static void NtQueueApcThreadHook(syscall_t *sc , CONTEXT *ctx , SYSCALL_STANDARD std);
 
-	
 
 	//Helpers
 	static void syscallEntry(THREADID thread_id, CONTEXT *ctx, SYSCALL_STANDARD std, void *v);
 	static void syscallExit(THREADID thread_id, CONTEXT *ctx, SYSCALL_STANDARD std, void *v);
 	static void syscallGetArguments(CONTEXT *ctx, SYSCALL_STANDARD std, int count, ...);
+	
 	//DEBUG
 	static void printArgs(syscall_t * sc);
-	static void printRegs(CONTEXT * ctx);
+	//static void printRegs(CONTEXT * ctx);
 };
 
