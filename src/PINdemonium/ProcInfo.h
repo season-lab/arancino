@@ -206,14 +206,15 @@ private:
 	VOID addPebAddress();
 	VOID addContextDataAddress();
 	VOID addSharedMemoryAddress();
-	VOID addCodePageDataAddress();
-	VOID addpShimDataAddress();
-	VOID addpApiSetMapAddress();
+	VOID addAnsiCodePageDataAddress();
+	VOID addShimDataAddress();
+	VOID addApiSetMapAddress();
 	VOID addKUserSharedDataAddress();
+	void addMemoryRange(ADDRINT address, std::vector<MemoryRange> &container, const char* logFormat);
 	//Library Helpers
 	string libToString(LibraryItem lib);
-	long long FindEx(W::HANDLE hProcess, W::LPVOID MemoryStart, W::DWORD MemorySize, W::LPVOID SearchPattern, W::DWORD PatternSize, W::LPBYTE WildCard);
-	void retrieveInterestingPidFromNames();
+	//long long FindEx(W::HANDLE hProcess, W::LPVOID MemoryStart, W::DWORD MemorySize, W::LPVOID SearchPattern, W::DWORD PatternSize, W::LPBYTE WildCard);
+	//void retrieveInterestingPidFromNames();
 	
 
 

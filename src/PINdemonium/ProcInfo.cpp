@@ -315,9 +315,9 @@ BOOL ProcInfo::isKnownLibrary(const string name, ADDRINT startAddr, ADDRINT endA
 	// use lowercase for earch
 	BOOL isSystemDll = !strstr(lcName, "c:\\windows\\system32");
 	isSystemDll = isSystemDll || !strstr(lcName, "c:\\windows\\syswow64");
-
 	free(lcName);
-	//MYINFO("Dll Name %s is system %d",name.c_str(),isSystemDll);
+
+	//MYINFO("Dll Name %s is system %d", name.c_str(), isSystemDll);
 	if (isSystemDll) {
 		return TRUE;
 	} else {
@@ -327,7 +327,7 @@ BOOL ProcInfo::isKnownLibrary(const string name, ADDRINT startAddr, ADDRINT endA
 }
 
 /*check if the address belong to a Library */
-//TODO add a whiitelist of Windows libraries that will be loaded
+//TODO add a whiitelist of safe Windows libraries that will be loaded
 BOOL ProcInfo::isLibraryInstruction(ADDRINT address){	 
 	//check inside known libraries
 	for(std::vector<LibraryItem>::iterator lib = knownLibraries.begin(); lib != knownLibraries.end(); ++lib) {
@@ -356,27 +356,33 @@ BOOL ProcInfo::isKnownLibraryInstruction(ADDRINT address){
 void ProcInfo::addProcAddresses(){
 	setCurrentMappedFiles();
 	addPebAddress();
-	addContextDataAddress();
-	addCodePageDataAddress();
+	// process addresses from PEB to get their memory ranges
+	addContextDataAddress(); // peb->{ActivationContextData, SystemDefaultActivationContextData, pContextData}
+	addAnsiCodePageDataAddress();
 	addSharedMemoryAddress();
 	addProcessHeapsAndCheckAddress(NULL);
-	addpShimDataAddress();
-	addpApiSetMapAddress();
+	addShimDataAddress();
+	addApiSetMapAddress();
 	addKUserSharedDataAddress();
 }
 
 //------------------------------------------------------------PEB------------------------------------------------------------
 
 VOID ProcInfo::addPebAddress(){
+	// invoke ZwQueryInformationProcess via GetProcAddress to get PEB info
 	typedef int (WINAPI* ZwQueryInformationProcess)(W::HANDLE,W::DWORD,W::PROCESS_BASIC_INFORMATION*,W::DWORD,W::DWORD*);
 	ZwQueryInformationProcess MyZwQueryInformationProcess; 
 	W::PROCESS_BASIC_INFORMATION tmppeb;
 	W::DWORD tmp; 
 	W::HMODULE hMod = W::GetModuleHandle("ntdll.dll");
 	MyZwQueryInformationProcess = (ZwQueryInformationProcess)W::GetProcAddress(hMod,"ZwQueryInformationProcess"); 
-	MyZwQueryInformationProcess(W::GetCurrentProcess(),0,&tmppeb,sizeof(W::PROCESS_BASIC_INFORMATION),&tmp);
+	MyZwQueryInformationProcess(W::GetCurrentProcess(),
+								0,
+								&tmppeb,
+								sizeof(W::PROCESS_BASIC_INFORMATION),
+								&tmp);
 	peb = (PEB *) tmppeb.PebBaseAddress;
-	MYINFO("PEB added from %08x -> %08x",peb,peb+sizeof(PEB));
+	MYINFO("PEB added from %08x -> %08x", peb, peb+sizeof(PEB));
 }
 
 BOOL ProcInfo::isPebAddress(ADDRINT addr) {
@@ -445,9 +451,10 @@ VOID ProcInfo::addThreadStackAddress(ADDRINT addr){
 }
 
 /**
-Fill the MemoryRange passed as parameter with the startAddress and EndAddress of the memory location in which the address is contained
+Fill the MemoryRange passed as parameter with startAddress and endAddress
+of the memory region to which the address belongs.
 ADDRINT address:  address of which we want to retrieve the memory region
-MemoryRange& range: MemoryRange which will be filled 
+MemoryRange& range: ref to MemoryRange object to fill
 return TRUE if the address belongs to a memory mapped area otherwise return FALSE
 **/
 BOOL ProcInfo::getMemoryRange(ADDRINT address, MemoryRange& range){		
@@ -456,12 +463,14 @@ BOOL ProcInfo::getMemoryRange(ADDRINT address, MemoryRange& range){
 	if(numBytes == 0){
 		MYERRORE("VirtualQuery failed");
 		return FALSE;
-	}	
+	}
 	ADDRINT start = (ADDRINT)mbi.BaseAddress;
 	ADDRINT end = (ADDRINT)mbi.BaseAddress + mbi.RegionSize;
+
+
 	//get the stack base address by searching the highest address in the allocated memory containing the stack Address
-	if((mbi.State == MEM_COMMIT || mbi.Type == MEM_MAPPED || mbi.Type == MEM_IMAGE ||  mbi.Type == MEM_PRIVATE) &&
-		start <=address && address <= end){
+	if (start <= address && address <= end && (mbi.State == MEM_COMMIT || mbi.Type == MEM_MAPPED ||
+											   mbi.Type == MEM_IMAGE ||  mbi.Type == MEM_PRIVATE)) {
 		range.StartAddress = start;
 		range.EndAddress = end;
 		return TRUE;
@@ -472,6 +481,15 @@ BOOL ProcInfo::getMemoryRange(ADDRINT address, MemoryRange& range){
 		MYINFO("state %08x   %08x",mbi.State,mbi.Type);
 		return  FALSE;
 	}		
+}
+
+// helper method for common operations involving getMemoryRange()
+inline void ProcInfo::addMemoryRange(ADDRINT address, std::vector<MemoryRange> &container, const char* nameForLog) {
+	MemoryRange range;
+	if (getMemoryRange(address, range)) {
+		if (nameForLog) MYINFO("%s base address %08x -> %08x", nameForLog, range.StartAddress, range.EndAddress);
+		container.push_back(range);
+	}
 }
 
 
@@ -567,11 +585,7 @@ VOID  ProcInfo::printMappedFileAddress(){
 
 //Add dynamically created mapped files to the mapped files list
 VOID ProcInfo::addMappedFilesAddress(ADDRINT startAddr){
-	MemoryRange mappedFile;
-	if(getMemoryRange((ADDRINT)startAddr,mappedFile)){
-		MYINFO("Adding mappedFile base address  %08x -> %08x ",mappedFile.StartAddress,mappedFile.EndAddress);
-		mappedFiles.push_back(mappedFile);
-	}
+	addMemoryRange(startAddr, mappedFiles, "Add mappedFile");
 }
 
 
@@ -586,72 +600,41 @@ BOOL ProcInfo::isGenericMemoryAddress(ADDRINT address){
 	return false;
 }
 
-
 //Adding the ContextData to the generic Memory Ranges
-VOID ProcInfo::addContextDataAddress(){
-	MemoryRange activationContextData;  
-	MemoryRange systemDefaultActivationContextData ;
-	MemoryRange pContextData;
-	if(getMemoryRange((ADDRINT)peb->ActivationContextData,activationContextData)){
-		MYINFO("Init activationContextData base address  %08x -> %08x ",activationContextData.StartAddress,activationContextData.EndAddress);
-		genericMemoryRanges.push_back(activationContextData);
-
-	}
-	if (getMemoryRange((ADDRINT)peb->SystemDefaultActivationContextData,systemDefaultActivationContextData)){
-		MYINFO("Init systemDefaultActivationContextData base address  %08x -> %08x",systemDefaultActivationContextData.StartAddress,systemDefaultActivationContextData.EndAddress);
-		genericMemoryRanges.push_back(systemDefaultActivationContextData);
-	} 
-	if(getMemoryRange((ADDRINT)peb->pContextData,pContextData)){
-		MYINFO("Init pContextData base address  %08x -> %08x",pContextData.StartAddress,pContextData.EndAddress);
-		genericMemoryRanges.push_back(pContextData);
-	}
+inline VOID ProcInfo::addContextDataAddress(){
+	addMemoryRange((ADDRINT)peb->ActivationContextData, genericMemoryRanges, "Init activationContextData");
+	addMemoryRange((ADDRINT)peb->SystemDefaultActivationContextData, genericMemoryRanges, "Init systemDefaultActivationContextData");
+	addMemoryRange((ADDRINT)peb->pContextData, genericMemoryRanges, "Init pContextData");
 }
 
 //Adding the SharedMemoryAddress to the generic Memory Ranges
-VOID ProcInfo::addSharedMemoryAddress(){
-	MemoryRange readOnlySharedMemoryBase;
-	if(getMemoryRange((ADDRINT) peb->ReadOnlySharedMemoryBase,readOnlySharedMemoryBase)){
-		MYINFO("Init readOnlySharedMemoryBase base address  %08x -> %08x",readOnlySharedMemoryBase.StartAddress,readOnlySharedMemoryBase.EndAddress);
-		genericMemoryRanges.push_back(readOnlySharedMemoryBase);
-	}
+inline VOID ProcInfo::addSharedMemoryAddress(){
+	addMemoryRange((ADDRINT)peb->ReadOnlySharedMemoryBase, genericMemoryRanges, "Init readOnlySharedMemoryBase");
 }
-
 
 //Adding the CodePageDataAddress to the generic Memory Ranges
-VOID ProcInfo::addCodePageDataAddress(){
-	MemoryRange ansiCodePageData;
-	if(getMemoryRange((ADDRINT) peb->AnsiCodePageData,ansiCodePageData)){
-		MYINFO("Init ansiCodePageData base address  %08x -> %08x",ansiCodePageData.StartAddress,ansiCodePageData.EndAddress);
-		genericMemoryRanges.push_back(ansiCodePageData);
-	}
-}
-
-
-//Adding the pShimDataAddress to the generic Memory Ranges
-VOID ProcInfo::addpShimDataAddress(){
-	MemoryRange pShimData;
-	if(getMemoryRange((ADDRINT) peb->pShimData, pShimData)){
-		genericMemoryRanges.push_back(pShimData);
-	}
+inline VOID ProcInfo::addAnsiCodePageDataAddress(){
+	addMemoryRange((ADDRINT)peb->AnsiCodePageData, genericMemoryRanges, "Init ansiCodePageData");
 }
 
 //Adding the pShimDataAddress to the generic Memory Ranges
-VOID ProcInfo::addpApiSetMapAddress(){
-	MemoryRange ApiSetMap;
-	if(getMemoryRange((ADDRINT) peb->ApiSetMap,ApiSetMap)){
-		//MYINFO("Init ApiSetMap base address  %08x -> %08x",ApiSetMap.StartAddress,ApiSetMap.EndAddress);
-		genericMemoryRanges.push_back(ApiSetMap);
-	}
+inline VOID ProcInfo::addShimDataAddress(){
+	addMemoryRange((ADDRINT)peb->pShimData, genericMemoryRanges, "Init pShimData");
+}
+
+//Adding the ApiSetMapAddress to the generic Memory Ranges
+inline VOID ProcInfo::addApiSetMapAddress(){
+	addMemoryRange((ADDRINT)peb->ApiSetMap, genericMemoryRanges, "Init ApiSetMap");
 }
 
 //Add to the generic memory ranges the KUserShareData structure
 VOID ProcInfo::addKUserSharedDataAddress(){
 	MemoryRange KUserSharedData;
 	KUserSharedData.StartAddress = KUSER_SHARED_DATA_ADDRESS;
-	KUserSharedData.EndAddress =KUSER_SHARED_DATA_ADDRESS +KUSER_SHARED_DATA_SIZE;
+	KUserSharedData.EndAddress = KUSER_SHARED_DATA_ADDRESS + KUSER_SHARED_DATA_SIZE;
 	genericMemoryRanges.push_back(KUserSharedData);
-	
 }
+
 //Adding the ProcessHeaps to the generic Memory Ranges
 BOOL ProcInfo::addProcessHeapsAndCheckAddress(ADDRINT eip){
 	BOOL isEipDiscoveredHere = FALSE;
