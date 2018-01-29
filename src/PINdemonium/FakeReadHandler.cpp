@@ -237,7 +237,7 @@ BOOL FakeReadHandler::CheckInCurrentDlls(UINT32 address_to_check){
 				p->addLibrary(Buffer,(UINT32)mi.lpBaseOfDll,end_addr);		
 			}
 			FilterHandler *filterHandler = FilterHandler::getInstance();
-			if(filterHandler->isNameInFilteredArray(Buffer)){
+			if(filterHandler->isNameInFilteredLibrary(Buffer)){
 				MYINFO("Added to the filtered array the module %s\n" , Buffer);
 				filterHandler->addToFilteredLibrary(Buffer,(UINT32)mi.lpBaseOfDll,end_addr);
 			}

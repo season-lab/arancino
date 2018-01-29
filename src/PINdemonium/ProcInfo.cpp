@@ -393,7 +393,7 @@ BOOL ProcInfo::isPebAddress(ADDRINT addr) {
 
 //Check if an address in on the Teb
 BOOL ProcInfo::isTebAddress(ADDRINT addr) {
-	for(std::vector<MemoryRange>::iterator it = tebs.begin(); it != tebs.end(); ++it){
+	for(MemoryRangeVector::iterator it = tebs.begin(); it != tebs.end(); ++it){
 		if(it->StartAddress <= addr && addr <= it->EndAddress){
 			return TRUE;
 		}
@@ -416,7 +416,7 @@ VOID ProcInfo::addThreadTebAddress(){
 Check if an address in on the stack
 **/
 BOOL ProcInfo::isStackAddress(ADDRINT addr) {
-	for(std::vector<MemoryRange>::iterator it = stacks.begin(); it != stacks.end(); ++it){
+	for(MemoryRangeVector::iterator it = stacks.begin(); it != stacks.end(); ++it){
 		if(it->StartAddress <= addr && addr <= it->EndAddress){
 			return TRUE;
 		}
@@ -484,7 +484,7 @@ BOOL ProcInfo::getMemoryRange(ADDRINT address, MemoryRange& range){
 }
 
 // helper method for common operations involving getMemoryRange()
-inline void ProcInfo::addMemoryRange(ADDRINT address, std::vector<MemoryRange> &container, const char* nameForLog) {
+inline void ProcInfo::addMemoryRange(ADDRINT address, MemoryRangeVector &container, const char* nameForLog) {
 	MemoryRange range;
 	if (getMemoryRange(address, range)) {
 		if (nameForLog) MYINFO("%s base address %08x -> %08x", nameForLog, range.StartAddress, range.EndAddress);
@@ -501,16 +501,11 @@ inline void ProcInfo::addMemoryRange(ADDRINT address, std::vector<MemoryRange> &
 	Add a section of a module ( for example the .text of the NTDLL ) in order to catch
 	writes/reads inside this area
 */
-VOID ProcInfo::addProtectedSection(ADDRINT startAddr, ADDRINT endAddr){
-	Section s;
-	s.begin = startAddr;
-	s.end = endAddr;
-	s.name = ".text";
-	
-	MYINFO("Protected section size is %d\n" , this->protected_section.size());
-	protected_section.push_back(s);
-	MYINFO("Added to protected section NTDLL %08x %08x\n" , startAddr,endAddr);
-	MYINFO("Protected section size is %d\n" , this->protected_section.size());
+VOID ProcInfo::addProtectedSection(ADDRINT startAddr, ADDRINT endAddr, const char* secName, const char* libName){
+	protected_section.push_back(Section(startAddr, endAddr, secName));
+
+	MYINFO("Added protected section %08x %08x from %s\n", startAddr, endAddr, libName);
+	MYINFO("Protected sections are now %d\n", protected_section.size());
 }
 
 /*
@@ -569,7 +564,7 @@ VOID ProcInfo::setCurrentMappedFiles(){
 }
 
 BOOL ProcInfo::isMappedFileAddress(ADDRINT addr){
-	for(std::vector<MemoryRange>::iterator item = mappedFiles.begin(); item != mappedFiles.end(); ++item) {
+	for(MemoryRangeVector::iterator item = mappedFiles.begin(); item != mappedFiles.end(); ++item) {
 		if(item->StartAddress <= addr && addr <= item->EndAddress){
 			return true;
 		}			
@@ -577,8 +572,8 @@ BOOL ProcInfo::isMappedFileAddress(ADDRINT addr){
 	return false;
 }
 
-VOID  ProcInfo::printMappedFileAddress(){
-	for(std::vector<MemoryRange>::iterator item = mappedFiles.begin(); item != mappedFiles.end(); ++item) {
+VOID ProcInfo::printMappedFileAddress(){
+	for(MemoryRangeVector::iterator item = mappedFiles.begin(); item != mappedFiles.end(); ++item) {
 		MYINFO("Mapped file %08x -> %08x ",item->StartAddress , item->EndAddress);
 	}
 }
@@ -592,7 +587,7 @@ VOID ProcInfo::addMappedFilesAddress(ADDRINT startAddr){
 //------------------------------------------------------------ Other Memory Location ------------------------------------------------------------
 
 BOOL ProcInfo::isGenericMemoryAddress(ADDRINT address){
-	for(std::vector<MemoryRange>::iterator item = genericMemoryRanges.begin(); item != genericMemoryRanges.end(); ++item) {
+	for(MemoryRangeVector::iterator item = genericMemoryRanges.begin(); item != genericMemoryRanges.end(); ++item) {
 		if(item->StartAddress <= address && address <= item->EndAddress){
 			return true;
 		}			
@@ -637,35 +632,35 @@ VOID ProcInfo::addKUserSharedDataAddress(){
 
 //Adding the ProcessHeaps to the generic Memory Ranges
 BOOL ProcInfo::addProcessHeapsAndCheckAddress(ADDRINT eip){
-	BOOL isEipDiscoveredHere = FALSE;
+	//BOOL isEipDiscoveredHere = FALSE;
 	W::SIZE_T BytesToAllocate;
 	W::PHANDLE aHeaps;
 	//getting the number of ProcessHeaps
 	W::DWORD NumberOfHeaps = W::GetProcessHeaps(0, NULL);
     if (NumberOfHeaps == 0) {
 		MYERRORE("Error in retrieving number of Process Heaps");
-		return isEipDiscoveredHere;
+		return FALSE; // return isEipDiscoveredHere;
 	}
 	//Allocating space for the ProcessHeaps Addresses
 	W::SIZETMult(NumberOfHeaps, sizeof(*aHeaps), &BytesToAllocate);
 	aHeaps = (W::PHANDLE)W::HeapAlloc(W::GetProcessHeap(), 0, BytesToAllocate);
 	 if ( aHeaps == NULL) {
 		MYERRORE("HeapAlloc failed to allocate space");
-		return isEipDiscoveredHere;
+		return FALSE; // return isEipDiscoveredHere;
 	} 
 
 	W::GetProcessHeaps(NumberOfHeaps,aHeaps);
 	//Adding the memory range containing the ProcessHeaps to the  genericMemoryRanges
-	 for (size_t i = 0; i < NumberOfHeaps; ++i) {
+	for (size_t i = 0; i < NumberOfHeaps; ++i) {
 		MemoryRange processHeap;
 		if(getMemoryRange((ADDRINT) aHeaps[i],processHeap)){
 			genericMemoryRanges.push_back(processHeap);
 			if(eip >= processHeap.StartAddress && eip <= processHeap.EndAddress){
-				isEipDiscoveredHere = TRUE;
+				return TRUE; //isEipDiscoveredHere = TRUE;
 			}
 		}
-    }
-	return isEipDiscoveredHere;
+     }
+	 return FALSE; // return isEipDiscoveredHere;
 }
 
 
@@ -677,7 +672,7 @@ BOOL ProcInfo::isInterestingProcess(unsigned int pid){
 // print the whitelisted memory in a fancy way
 void ProcInfo::PrintWhiteListedAddr(){
 	//Iterate through the already whitelisted memory addresses
-	for(std::vector<MemoryRange>::iterator item = genericMemoryRanges.begin(); item != genericMemoryRanges.end(); ++item) {
+	for(MemoryRangeVector::iterator item = genericMemoryRanges.begin(); item != genericMemoryRanges.end(); ++item) {
 		MYINFO("[MEMORY RANGE]Whitelisted  %08x  ->  %08x\n",item->StartAddress,item->EndAddress);				
 	}
 	for (std::map<std::string,HeapZone>::iterator it=HeapMap.begin(); it!=HeapMap.end(); ++it){	
@@ -690,7 +685,7 @@ void ProcInfo::PrintWhiteListedAddr(){
 	for(std::vector<LibraryItem>::iterator item = this->knownLibraries.begin(); item != this->knownLibraries.end(); ++item) {
 		MYINFO("[KNOWN LIBRARY ITEM]Whitelisted  %08x  ->  %08x\n",item->StartAddress,item->EndAddress);				
 	}
-	for(std::vector<MemoryRange>::iterator item = this->mappedFiles.begin(); item != this->mappedFiles.end(); ++item) {
+	for(MemoryRangeVector::iterator item = this->mappedFiles.begin(); item != this->mappedFiles.end(); ++item) {
 		MYINFO("[MAPPED FILES]Whitelisted  %08x  ->  %08x\n",item->StartAddress,item->EndAddress);				
 	}
 }

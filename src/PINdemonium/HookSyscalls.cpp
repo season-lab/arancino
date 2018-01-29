@@ -201,34 +201,49 @@ void HookSyscalls::NtRequestWaitReplyPortHook(syscall_t *sc, CONTEXT *ctx, SYSCA
 
 //----------------------------- HELPER METHODS -----------------------------//
 
-// stole this lovely source code from godware from the rreat library.
+/* CREDITS
+ * adapted from godware https://github.com/jbremer/godware/blob/master/godware.cpp
+ * which borrowed it from rreat library https://github.com/jbremer/rreat/blob/master/rreat.c */
 void HookSyscalls::enumSyscalls()
 {
     // no boundary checking at all, I assume ntdll is not malicious..
     // besides that, we are in our own process, _should_ be fine..
     unsigned char *image = (unsigned char *) W::GetModuleHandle("ntdll");
     W::IMAGE_DOS_HEADER *dos_header = (W::IMAGE_DOS_HEADER *) image;
-    W::IMAGE_NT_HEADERS *nt_headers = (W::IMAGE_NT_HEADERS *)(image +
-        dos_header->e_lfanew);
-    W::IMAGE_DATA_DIRECTORY *data_directory = &nt_headers->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
-    W::IMAGE_EXPORT_DIRECTORY *export_directory =(W::IMAGE_EXPORT_DIRECTORY *)(image + data_directory->VirtualAddress);
-    unsigned long *address_of_names = (unsigned long *)(image + export_directory->AddressOfNames);
-    unsigned long *address_of_functions = (unsigned long *)(image + export_directory->AddressOfFunctions);
-    unsigned short *address_of_name_ordinals = (unsigned short *)(image + export_directory->AddressOfNameOrdinals);
-    unsigned long number_of_names = MIN(export_directory->NumberOfFunctions, export_directory->NumberOfNames);
-    for (unsigned long i = 0; i < number_of_names; i++) {
+    W::IMAGE_NT_HEADERS *nt_headers = (W::IMAGE_NT_HEADERS *)(image + dos_header->e_lfanew);
+    W::IMAGE_DATA_DIRECTORY *data_directory = &nt_headers->
+		OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+    W::IMAGE_EXPORT_DIRECTORY *export_directory = (W::IMAGE_EXPORT_DIRECTORY *)(image + data_directory->VirtualAddress);
+    // RVAs from base of image
+	W::DWORD *address_of_names = (W::DWORD*)(image + export_directory->AddressOfNames);
+	W::DWORD *address_of_functions = (W::DWORD*)(image + export_directory->AddressOfFunctions);
+    UINT16 *address_of_name_ordinals = (W::UINT16*)(image + export_directory->AddressOfNameOrdinals);
+	// NumberOfNames can be 0: in that case the module will export by ordinal only 
+    W::DWORD number_of_names = MIN(export_directory->NumberOfFunctions, export_directory->NumberOfNames);
+    for (W::DWORD i = 0; i < number_of_names; i++) {
+		// AddressOfNameOrdinals contains the ordinals associated with the function names in AddressOfNames
         const char *name = (const char *)(image + address_of_names[i]);
+		// AddressOfFunctions points to an array of RVAs of the functions/symbols in the module
         unsigned char *addr = image + address_of_functions[address_of_name_ordinals[i]];
-        if(!memcmp(name, "Zw", 2) || !memcmp(name, "Nt", 2)) {
+        if (!memcmp(name, "Zw", 2) || !memcmp(name, "Nt", 2)) {
+			#ifdef __LP64__
+			/* TODO: which other signatures should we consider? */
+			// mov r10, rcx ; mov eax, syscall_number; syscall; ret
+			// => 4C 8B D1 B8 82 00 00 00 0F 05 C3
+			if (*((UINT32*)addr) == 0xb8d18b4c && addr[8] == 0x0f) {
+				ADDRINT syscall_number = *(UINT32*)(addr + 4);
+				syscallsMap.insert(std::pair<ADDRINT, string>(syscall_number, std::string(name)));
+			}
+			#else
             // does the signature match?
             // either:   mov eax, syscall_number ; mov ecx, some_value
             // or:       mov eax, syscall_number ; xor ecx, ecx
             // or:       mov eax, syscall_number ; mov edx, 0x7ffe0300
-            if(*addr == 0xb8 && (addr[5] == 0xb9 || addr[5] == 0x33 || addr[5] == 0xba)) {
-                unsigned long syscall_number = *(unsigned long *)(addr + 1);
-				string syscall_name = string(name);
-				syscallsMap.insert(std::pair<ADDRINT,string>(syscall_number,syscall_name));				
+            if(addr[0] == 0xb8 && (addr[5] == 0xb9 || addr[5] == 0x33 || addr[5] == 0xba)) {
+                ADDRINT syscall_number = *(UINT32*)(addr + 1);
+				syscallsMap.insert(std::pair<ADDRINT,string>(syscall_number, std::string(name)));				
             }
+			#endif
         }
     }
 }

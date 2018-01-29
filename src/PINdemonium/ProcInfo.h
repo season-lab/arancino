@@ -65,16 +65,21 @@ struct LibraryItem{
 
 //memorize the PE section information
 struct Section {
- ADDRINT begin;
- ADDRINT end;
- string name;
+	ADDRINT begin;
+	ADDRINT end;
+	string name;
 
- Section() {}
- Section(SEC &sec) {
-	 this->name = SEC_Name(sec);
-	 this->begin = SEC_Address(sec);
-	 this->end = this->begin + SEC_Size(sec);
- }
+	Section(ADDRINT begin, ADDRINT end, string name) {
+		this->begin = begin;
+		this->end = end;
+		this->name = name;
+	}
+
+	Section(SEC &sec) {
+		this->begin = SEC_Address(sec);
+		this->end = this->begin + SEC_Size(sec);
+		this->name = SEC_Name(sec);
+	}
 };
 
 struct HeapZone {
@@ -102,8 +107,8 @@ public:
 	string getProcName();
 	clock_t getStartTimer();
 	std::set<ADDRINT> getJmpBlacklist(); /* DCD: unordered_set */
-	ADDRINT getPINVMStart();
-	ADDRINT getPINVMEnd();
+	//ADDRINT getPINVMStart();
+	//ADDRINT getPINVMEnd();
 	std::map<string ,HeapZone> getHeapMap();
 	std::map<string,string> getDumpedHZ();
 
@@ -137,7 +142,7 @@ public:
 	BOOL isInsideMainIMG(ADDRINT address);
 	
 	//Protected secions (functions for FakeMemoryHandler)
-	VOID addProtectedSection(ADDRINT startAddr,ADDRINT endAddr);
+	VOID addProtectedSection(ADDRINT startAddr, ADDRINT endAddr, const char* secName, const char* libName);
 	BOOL isInsideProtectedSection(ADDRINT address);
 
 	//Whitelisted memory (functions for FakeMemoryReader)
@@ -172,17 +177,18 @@ public:
 
 
 private:
+	typedef std::vector<MemoryRange> MemoryRangeVector;
 	static ProcInfo* instance;
 	ProcInfo::ProcInfo();
 	ADDRINT first_instruction;
 	ADDRINT prev_ip;
-	std::set<string> interresting_processes_name; /* DCD: unordered_set */
-	std::set<unsigned int> interresting_processes_pid; /* DCD: unordered_set */
-	std::vector<MemoryRange>  stacks;				   //Set of Stack one for each thread
+	std::set<string> interresting_processes_name; /* DCD: was: unordered_set - TODO unused! */
+	std::set<unsigned int> interresting_processes_pid; /* DCD: unordered_set - TODO almost unused! */
+	MemoryRangeVector stacks;				   //Set of Stack one for each thread
 	MemoryRange mainImg;
-	std::vector<MemoryRange> tebs;                     //Teb Base Address
-	std::vector<MemoryRange> genericMemoryRanges;
-	std::vector<MemoryRange>  mappedFiles;
+	MemoryRangeVector tebs;                     //Teb Base Address
+	MemoryRangeVector genericMemoryRanges;
+	MemoryRangeVector mappedFiles;
 	PEB *peb;
 	std::vector<Section> Sections;
 	std::map<std::string, HeapZone> HeapMap;
@@ -210,7 +216,7 @@ private:
 	VOID addShimDataAddress();
 	VOID addApiSetMapAddress();
 	VOID addKUserSharedDataAddress();
-	void addMemoryRange(ADDRINT address, std::vector<MemoryRange> &container, const char* logFormat);
+	void addMemoryRange(ADDRINT address, MemoryRangeVector &container, const char* logFormat);
 	//Library Helpers
 	string libToString(LibraryItem lib);
 	//long long FindEx(W::HANDLE hProcess, W::LPVOID MemoryStart, W::DWORD MemorySize, W::LPVOID SearchPattern, W::DWORD PatternSize, W::LPBYTE WildCard);

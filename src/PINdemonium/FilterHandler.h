@@ -23,7 +23,7 @@ public:
 	//utils
 	BOOL isFilteredWrite(ADDRINT addr, ADDRINT eip);
 	void addToFilteredLibrary(std::string img_name , ADDRINT start_addr , ADDRINT end_addr);
-	BOOL isNameInFilteredArray(std::string img_name);
+	BOOL isNameInFilteredLibrary(std::string img_name);
 	BOOL isFilteredLibraryInstruction(ADDRINT eip);
 
 private:

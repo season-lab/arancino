@@ -166,19 +166,18 @@ VOID CreateProcessHookEntry(W::LPWSTR  lpApplicationName){
 
 //scan the image and try to hook all the function specified above
 void HookFunctions::hookDispatcher(IMG img){
-	//for each function that we want to hook or replace
+	// iterate over functions that we want to hook/replace
 	for (std::map<string,int>::iterator item = this->functionsMap.begin(); item != this->functionsMap.end(); ++item){
-		//get the pointer to the specified function
 		const char * func_name = item->first.c_str();
-		RTN rtn = RTN_FindByName(img, func_name);
-		//if we found a valid routine
-		if(rtn != RTN_Invalid()){		
+		RTN rtn = RTN_FindByName(img, func_name); // get pointer to the function
+		
+		if (rtn != RTN_Invalid()) {
+			int index = item->second;
 			ADDRINT va_address = RTN_Address(rtn);
 			//MYINFO("Inside %s Address of %s: %08x" ,IMG_Name(img).c_str(),func_name, va_address);
-			RTN_Open(rtn); 	
-			int index = item->second;
-			//decide what to do based on the function hooked
-			//Different arguments are passed to the hooking routine based on the function
+			
+			RTN_Open(rtn);
+			// different arguments get passed to the hooking routine depending on the specific function
 			switch(index){
 				case(VIRTUALFREE_INDEX):
 					RTN_InsertCall(rtn, IPOINT_BEFORE, (AFUNPTR)VirtualFreeHook , IARG_FUNCARG_ENTRYPOINT_VALUE,0, IARG_END);

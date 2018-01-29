@@ -69,19 +69,19 @@ BOOL FilterHandler::isFilteredWrite(ADDRINT addr, ADDRINT eip){
 }
 
 //Check if the addr belongs to the TEB
-BOOL FilterHandler::isLibTEBWrite(ADDRINT addr,ADDRINT eip){
+BOOL FilterHandler::isLibTEBWrite(ADDRINT addr, ADDRINT eip){
 	//MYINFO("Calling isTEBWrite");
 	return (pInfo->isTebAddress(addr) && pInfo->isLibraryInstruction(eip));
 }
 
 
 //Check if the write addr belongs to the Stack and the current eip is not in the libraries
-BOOL FilterHandler::isLibStackWrite(ADDRINT addr,ADDRINT eip){	
-		return (pInfo->isStackAddress(addr) && pInfo->isLibraryInstruction(eip));
+BOOL FilterHandler::isLibStackWrite(ADDRINT addr, ADDRINT eip){	
+	return (pInfo->isStackAddress(addr) && pInfo->isLibraryInstruction(eip));
 }
 
 
-BOOL FilterHandler::isNameInFilteredArray(std::string img_name){
+BOOL FilterHandler::isNameInFilteredLibrary(std::string img_name){
 	for(std::vector<string>::iterator name = this->filtered_library_name.begin(); name != filtered_library_name.end(); ++name){
 		if (img_name.find(name->c_str()) != std::string::npos ){
 			// WARNING: as a side-effect, it removes a found element from the list

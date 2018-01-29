@@ -107,40 +107,38 @@ void imageLoadCallback(IMG img,void *){
 	
 	if(IMG_IsMainExecutable(img)){ // get initial entropy of the PE	(no libraries)
 		proc_info->setMainIMGAddress(startAddr, endAddr);
-		// get the address of the first instruction
-		proc_info->setFirstINSaddress(IMG_Entry(img));
-		// get the program name
-		proc_info->setProcName(name);
-		// get the initial entropy
-		float initial_entropy = proc_info->GetEntropy();
-		//MYINFO("----------------------------------------------");
+		proc_info->setFirstINSaddress(IMG_Entry(img)); // get address of first instruction
+		proc_info->setProcName(name); // program name
+		float initial_entropy = proc_info->GetEntropy(); // initial entropy
 		proc_info->setInitialEntropy(initial_entropy);
-		//MYINFO("----------------------------------------------");	
+		
 		// create Report File
 		Report::getInstance()->initializeReport(proc_info->getProcName(), startAddr, endAddr , initial_entropy);
+		
 		// forward pass over all sections in the PE
 		for (SEC sec= IMG_SecHead(img); SEC_Valid(sec); sec = SEC_Next(sec)) {
 			proc_info->insertSection(Section(sec));
 		}
 		proc_info->PrintSections();
-	} else { // build the filtered library list
-		/* if you need to protect sections of other DLLs put them here */
+	} else { // library filtering & API hooking
+		/* if you need to protect sections of other DLLs put them here
+		 * (=> read & writes inside the specified area will be caught) */
 		if (name.find("ntdll") != std::string::npos) { /* TODO: add more libs */
 			for (SEC sec= IMG_SecHead(img); SEC_Valid(sec); sec = SEC_Next(sec)) {
 				if (SEC_Name(sec).compare(".text") == 0) {
-					MYINFO("Adding NTDLL %08x  %08x",SEC_Address(sec), SEC_Address(sec)+SEC_Size(sec));
-					proc_info->addProtectedSection(SEC_Address(sec), SEC_Address(sec)+SEC_Size(sec));
+					MYINFO("Adding NTDLL %08x %08x", SEC_Address(sec), SEC_Address(sec)+SEC_Size(sec));
+					proc_info->addProtectedSection(SEC_Address(sec), SEC_Address(sec)+SEC_Size(sec), ".text", "NTDLL");
 				}
 			}
 		}
-		// look for functions that have to be hooked inside this DLL
+		/** API hooking part: look for functions of interest inside the DLL **/
 		hookFun.hookDispatcher(img);
 
-		// check whether we have to filter this library during instrumentation
+		// check whether we have to filter the library during instrumentation
 		proc_info->addLibrary(name, startAddr, endAddr);
-		if(filterHandler->isNameInFilteredArray(name)){
+		if(filterHandler->isNameInFilteredLibrary(name)){
 			filterHandler->addToFilteredLibrary(name, startAddr, endAddr);
-			MYINFO("Added to the filtered array the module %s\n", name);
+			MYINFO("Added module %s to the filtered library\n", name);
 		}
 	}
 }
