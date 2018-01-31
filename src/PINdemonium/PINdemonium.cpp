@@ -149,7 +149,7 @@ void instrumentInstruction(INS ins,void *v){
 	// check the current mode of operation
 	Config *config = Config::getInstance();
 	if(config->ANTIEVASION_MODE){
-		thider.avoidEvasion(ins);
+		thider.addInstrumentation(ins);
 	}
 	
 	if(config->UNPACKING_MODE){

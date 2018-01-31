@@ -56,6 +56,9 @@ void HookSyscalls::syscallExit(THREADID thread_id, CONTEXT *ctx, SYSCALL_STANDAR
 
 //----------------------------- HELPER METHODS -----------------------------//
 
+/* TODO: why we do not build this once for all offline?
+ * https://www.evilsocket.net/2014/02/11/on-windows-syscall-mechanism-and-syscall-numbers-extraction-methods// */
+
 /* CREDITS
  * adapted from godware https://github.com/jbremer/godware/blob/master/godware.cpp
  * which borrowed it from rreat library https://github.com/jbremer/rreat/blob/master/rreat.c

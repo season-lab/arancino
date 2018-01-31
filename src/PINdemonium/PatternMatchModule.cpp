@@ -105,7 +105,7 @@ bool PatternMatchModule::patchDispatcher(INS ins, ADDRINT curEip){
 		this->curPatchPointer = map_at(patchesMap, disass_instr);
 		return true;
 	}
-	//otherwiae continue the analysis in the class PINshield
+	//otherwise continue the analysis in the class PINshield /* TODO refactor if we want to consider other defenses */
 	return false;
 
 }

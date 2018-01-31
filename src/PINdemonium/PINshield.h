@@ -11,18 +11,16 @@ namespace W {
 	#include "windows.h"
 }
 
-class PINshield
-{
+class PINshield {
 public:
-	PINshield(void);
-	~PINshield(void);
-	void avoidEvasion(INS ins);
+	PINshield() {};
+	void addInstrumentation(INS ins);
 
 private:
 	PatternMatchModule evasionPatcher;
-	FakeReadHandler fakeMemH;
+	FakeReadHandler fakeReadH;
 	FakeWriteHandler fakeWriteH;
-	BOOL firstRead;
+	bool isFakeReadInitialized = false;
 	//void ScanForMappedFiles();	
 };
 
