@@ -14,13 +14,17 @@ return size;
 // Read output from the child process's pipe for STDOUT
 // and write to the parent process's pipe for STDOUT. 
 // Stop when there is no more data. 
-string YaraHeuristic::ReadFromPipe(W::PROCESS_INFORMATION piProcInfo) {
+std::string YaraHeuristic::ReadFromPipe(W::PROCESS_INFORMATION piProcInfo) {
     W::DWORD dwRead; 
     CHAR chBuf[PIPE_BUFSIZE];
     W::BOOL bSuccess = FALSE;
     std::string out = "", err = "";
     for (;;) { 
-        bSuccess=W::ReadFile( g_hChildStd_OUT_Rd, chBuf, PIPE_BUFSIZE, &dwRead, NULL);
+        bSuccess=W::ReadFile(g_hChildStd_OUT_Rd,
+							 chBuf,
+							 PIPE_BUFSIZE,
+							 &dwRead,
+							 NULL);
         if( ! bSuccess || dwRead == 0 ) break; 
 
         std::string s(chBuf, dwRead);

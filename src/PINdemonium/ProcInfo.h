@@ -129,7 +129,7 @@ public:
 	void printHeapList();
 	/* helper */
 	void insertSection(Section section);
-	string getSectionNameByIp(ADDRINT ip);
+	string getSectionNameByIp(ADDRINT addr);
 	void insertHeapZone(std::string hz_md5, HeapZone heap_zone);
 	void insertDumpedHeapZone(std::string hz_data_md5, std::string hz_bin_path);
 	void deleteHeapZone(std::string md5_to_remove);
@@ -193,7 +193,7 @@ private:
 	std::vector<Section> Sections;
 	std::map<std::string, HeapZone> HeapMap;
 	std::vector<HeapZone> WhitelistHeap;
-	std::map<std::string, std::string> HeapMapDumped;
+	std::map<std::string, std::string> HeapMapDumped; // TODO use md5string here?
 	std::set<ADDRINT> addr_jmp_blacklist; /* DCD: unordered_set */
 	std::vector<LibraryItem> knownLibraries;		   //vector of know library loaded
 	std::vector<LibraryItem> unknownLibraries;		   //vector of unknow library loaded	

@@ -7,19 +7,20 @@ const ADDRINT JMP_THRESHOLD =  0x200;
 UINT32 LongJumpHeuristic::run(INS ins, ADDRINT prev_ip){
 	bool result = false;
 	//filter out the improper values 
-	if(prev_ip > 0){
+	if (prev_ip > 0) {
 		
-		//get the current IP
+		// get the current IP
 		ADDRINT ip = INS_Address(ins);
-		//get the difference from the prev_ip and the current ip (the target of the jmp instruction)
-		ADDRINT diff = (prev_ip > ip) ? prev_ip - ip : ip - prev_ip; // WAS: std::abs( (int)ip - (int)prev_ip);
+		
+		// difference between prev_ip and current ip (the target of the jmp instruction)
+		ADDRINT diff = ABS_ADDR_DIFF(prev_ip, ip);
 
-		//if the difference is greater than our threshold then a long jmp i sdetected
-		if(diff > JMP_THRESHOLD){
+		// compare diff against JMP_THRESHOLD
+		if (diff > JMP_THRESHOLD) {
 			result = true;
 			MYWARN("[LONG JMP DETECTED!!] FROM : %08x	TO : %08x", prev_ip, ip);
-			
 		}
+
 		//add heuristic result to report
 		MYINFO("Adding Long Jump Heuristic to report");
 		/* TODO: as of now Pin would need an ad-hoc internal exception handler */
@@ -32,9 +33,10 @@ UINT32 LongJumpHeuristic::run(INS ins, ADDRINT prev_ip){
 		//}
 				
 	}
-	if(result==true){
+
+	if (result) {
 		return OEPFINDER_FOUND_OEP;
-	}else{
+	} else {
 		return OEPFINDER_HEURISTIC_FAIL;
 	}
 

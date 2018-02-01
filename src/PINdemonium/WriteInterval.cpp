@@ -12,7 +12,6 @@ WriteInterval::WriteInterval(ADDRINT addr_begin, ADDRINT addr_end, BOOL heap_fla
 	this->detectedFunctions = 0;
 }
 
-
 //----------------------- GETTER / SETTER -----------------------
 
 ADDRINT WriteInterval::getAddrBegin(){
@@ -23,12 +22,12 @@ ADDRINT WriteInterval::getAddrEnd(){
 	return this->addr_end;
 }
 
-UINT32 WriteInterval::getBrokenFlag(){
+BOOL WriteInterval::getBrokenFlag(){
 	return this->broken_flag;
 }
 
-UINT32 WriteInterval::getThreshold(){
-	return (UINT32)((this->addr_end - this->addr_begin)/20); // cast should be fine (again)
+ADDRINT WriteInterval::getThreshold(){
+	return (this->addr_end - this->addr_begin)/20;
 }
 
 UINT32 WriteInterval::getCurrNumberJMP(){

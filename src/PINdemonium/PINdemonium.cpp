@@ -153,7 +153,7 @@ void instrumentInstruction(INS ins, void *v){
 	}
 	
 	if(config->UNPACKING_MODE){
-		oepf.IsCurrentInOEP(ins);
+		oepf.isCurrentInOEP(ins);
 	}	
 }
 
@@ -258,7 +258,7 @@ int main(int argc, char * argv[]){
 	// parse KNOB args and JSON config file
 	printf("[INFO] Configuring Pintool\n");
 	ConfigureTool();
-	if(Config::getInstance()->POLYMORPHIC_CODE_PATCH){
+	if (Config::getInstance()->POLYMORPHIC_CODE_PATCH) {
 		TRACE_AddInstrumentFunction(instrumentTrace,0);
 	}
 

@@ -1,5 +1,5 @@
 #include "OepFinder.h"
-
+#include "porting.h"
 
 OepFinder::OepFinder(void){
 	this->wxorxHandler = WxorXHandler::getInstance();
@@ -73,12 +73,12 @@ static VOID DoBreakpoint(const CONTEXT *ctxt, THREADID tid, ADDRINT ip)
 // - is a popad or pushad  -----> update the flag in ProcInfo
 // - broke the W xor X law  -----> trigger the heuristics and write the report
 // - update previous IP info in ProcInfo (useful for some heuristics like jumpOuterSection)
-UINT32 OepFinder::IsCurrentInOEP(INS ins){
+UINT32 OepFinder::isCurrentInOEP(INS ins){
 	FilterHandler *filterHandler = FilterHandler::getInstance();
 	ProcInfo *proc_info = ProcInfo::getInstance();		
 	int heap_index = -1;
 	ADDRINT curEip = INS_Address(ins);
-	ADDRINT prev_ip = proc_info->getPrevIp();
+	ADDRINT prevIp = proc_info->getPrevIp();
 	//check if current instruction is a write
 	if (INS_IsMemoryWrite(ins)) {
 		INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)handleWrite,
@@ -106,22 +106,24 @@ UINT32 OepFinder::IsCurrentInOEP(INS ins){
 	//W xor X broken
 	if (item != NULL ){
 		Config *config = Config::getInstance();
-		if(config->getDumpNumber() < config->SKIP_DUMP ){
+		
+		if (config->getDumpNumber() < config->SKIP_DUMP) {
 			//MYINFO("Skipping  Dump Number: %d Dumps to skip: %d", (int)Config::getInstance()->getDumpNumber(), config->SKIP_DUMP);
-			UINT32 currJMPLength = std::abs( (int)curEip - (int)prev_ip);
-			skipCurrentDump(item,currJMPLength);
+			ADDRINT currJMPLength = ABS_ADDR_DIFF(prevIp, curEip);
+			skipCurrentDump(item, currJMPLength, config);
 			return OEPFINDER_SKIPPED_DUMP;
 		}
-		//not the first broken in this write set		
-		if(item->getBrokenFlag()){
+		
+		// if not the first broken in this write set		
+		if (item->getBrokenFlag()){
 			//MYINFO("%08x -> %s -> %s",curEip,INS_Disassemble(ins).c_str(),RTN_FindNameByAddress(curEip).c_str());
 			//if INTER_WRITESET_ANALYSIS_ENABLE flag is enable check if inter section JMP and trigger analysis	
-			if(config->INTER_WRITESET_ANALYSIS_ENABLE == true){ 				
-				intraWriteSetJMPAnalysis(curEip,prev_ip,ins,item );
+			if (config->INTER_WRITESET_ANALYSIS_ENABLE){ 				
+				intraWriteSetJMPAnalysis(curEip, prevIp, ins, item);
 			}
 		}
-		//first broken in this write set ---> analysis and dump ---> set the broken flag of this write ionterval 
-		else{
+		//first broken in this write set ---> analysis and dump ---> set the broken flag for this write interval 
+		else {
 			MYPRINT("\n\n-------------------------------------------------------------------------------------------------------");
 			MYPRINT("------------------------------------ NEW STUB begin: %08x TO %08x -------------------------------------",item->getAddrBegin(),item->getAddrEnd());
 			MYPRINT("-------------------------------------------------------------------------------------------------------\n");
@@ -129,15 +131,25 @@ UINT32 OepFinder::IsCurrentInOEP(INS ins){
 			MYPRINT("- - - - - - - - - - - - - - - - - - - - - STAGE 1: DUMPING - - - - - - - - - - - - - - - - - - - - - - - - -");
 			MYPRINT("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
 			MYINFO("Current EIP %08x",curEip);
+			
+			W::DWORD pid = W::GetCurrentProcessId();
 			Config::getInstance()->setNewWorkingDirectory(false); // create the folder dump_0 inside the folder associated to this timestamp 
-			report->createReportDump(curEip,item->getAddrBegin(),item->getAddrEnd(),Config::getInstance()->getDumpNumber(),false,W::GetCurrentProcessId());
-			int result = this->DumpAndFixIAT(curEip);
-			this->DumpAndCollectHeap(item,curEip,result);
+			report->createReportDump(curEip,
+									 item->getAddrBegin(),
+									 item->getAddrEnd(),
+									 Config::getInstance()->getDumpNumber(),
+									 false,
+									 pid);
+
+			int result = this->dumpAndFixIAT(curEip, pid, config); // invokes Scylla
+			this->dumpAndCollectHeap(item,curEip,result);		
 			Config::getInstance()->setWorking(result);
+			
 			MYPRINT("\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
 			MYPRINT("- - - - - - - - - - - - - - - - - - - - - STAGE 3: ANALYZING DUMP - - - - - - - - - - - - - - - - - - - - - -");
 			MYPRINT("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
-			this->analysis(item, ins, prev_ip, curEip,result);
+			
+			this->analysis(item, ins, prevIp, curEip, result);
 			item->setBrokenFlag(true);
 			
 			Config::getInstance()->incrementDumpNumber(); //Incrementing the dump number even if Scylla is not successful
@@ -146,12 +158,13 @@ UINT32 OepFinder::IsCurrentInOEP(INS ins){
 				
 		}
 		// If we want to debug the program manually let's set the breakpoint after the triggered analysis
-		if(Config::ATTACH_DEBUGGER){
+		if (Config::ATTACH_DEBUGGER) {
 			INS_InsertCall(ins,  IPOINT_BEFORE, (AFUNPTR)DoBreakpoint, IARG_CONST_CONTEXT, IARG_THREAD_ID, IARG_END);
 		}
 		proc_info->setPrevIp(INS_Address(ins));
 	}
-	//update the previous IP
+
+	// update the previous IP field in ProcInfo
 	proc_info->setPrevIp(INS_Address(ins));
 
 	return OEPFINDER_NOT_WXORX_INST;
@@ -165,23 +178,27 @@ void OepFinder::intraWriteSetJMPAnalysis(ADDRINT curEip,ADDRINT prev_ip,INS ins,
 	ProcInfo *pInfo = ProcInfo::getInstance();
 	Config *config = Config::getInstance();
 	//long jump detected intra-writeset ---> trigger analysis and dump
-	UINT32 currJMPLength = std::abs( (int)curEip - (int)prev_ip);
-	UINT32 JMPtreshold = item->getThreshold();
-	if( currJMPLength > JMPtreshold){
-		//Check if the current WriteSet has already dumped more than WRITEINTERVAL_MAX_NUMBER_JMP times
-		//and check if the previous instruction was in the library (Long jump because return from Library)
-		if(item->getCurrNumberJMP() < config->WRITEINTERVAL_MAX_NUMBER_JMP  && !pInfo->isLibraryInstruction(prev_ip)){
-			
-			//Try to dump and Fix the IAT if successful trigger the analysis
+	ADDRINT currJMPLength = ABS_ADDR_DIFF(prev_ip, curEip);
+	ADDRINT JMPtreshold = item->getThreshold();
+
+	if (currJMPLength > JMPtreshold){
+		// check if the current WriteSet has already dumped more than WRITEINTERVAL_MAX_NUMBER_JMP times
+		// and if the previous instruction is from a library (Long jump happened because of ret from library)
+		if (item->getCurrNumberJMP() < config->WRITEINTERVAL_MAX_NUMBER_JMP && !pInfo->isLibraryInstruction(prev_ip)) {
+			// try to dump and Fix the IAT if successful trigger the analysis
 			MYPRINT("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
 	        MYPRINT("- - - - - - - - - - - - - - - - - - INTRA-DUMP ANALYSIS TRIGGERED! - - - - - - - - - - - - - - - - - - - -");
-			 MYPRINT("- - - - - - - - - - - - - - - - - -currJMPLength: %d - Treshold: %d - - - - - - - - - - - - - - - - - - - -", currJMPLength,JMPtreshold);
+			MYPRINT("- - - - - - - - - - - - - - - - - -currJMPLength: %d - Treshold: %d - - - - - - - - - - - - - - - - - - - -", currJMPLength,JMPtreshold);
 			MYPRINT("- - - - - - - - - JUMP NUMBER %d OF LENGTH %d  IN STUB FROM %08x TO %08x- - - - - - - - - - - - - -\n",item->getCurrNumberJMP(),currJMPLength, item->getAddrBegin(),item->getAddrEnd());
-			MYINFO("Current EIP %08x",curEip);
+			MYINFO("Current EIP %08x", curEip);
+			
 			report->createReportDump(curEip,item->getAddrBegin(),item->getAddrEnd(),Config::getInstance()->getDumpNumber(),true,W::GetCurrentProcessId());
-			Config::getInstance()->setNewWorkingDirectory(false); // create a new folder to store the dump 
-			int result = this->DumpAndFixIAT(curEip);
-			this->DumpAndCollectHeap(item,curEip,result);
+			
+			Config* config = Config::getInstance();
+			config->setNewWorkingDirectory(false); // create a new folder to store the dump 
+			W::DWORD pid = W::GetCurrentProcessId();
+			int result = this->dumpAndFixIAT(curEip, pid, config);
+			this->dumpAndCollectHeap(item,curEip,result);
 			config->setWorking(result);
 			this->analysis(item, ins, prev_ip, curEip , result);
 			report->closeReportDump(); //close the current dump report
@@ -195,21 +212,16 @@ void OepFinder::intraWriteSetJMPAnalysis(ADDRINT curEip,ADDRINT prev_ip,INS ins,
 	}
 }
 
-/*
-Skip the current dump
-*/
-VOID OepFinder::skipCurrentDump(WriteInterval* item, UINT32 currJMPLength ){
-	if(!item->getBrokenFlag()){
+// skip the current dump
+VOID OepFinder::skipCurrentDump(WriteInterval* item, ADDRINT currJMPLength, Config* config) {
+	if (!item->getBrokenFlag()) {
 		item->setBrokenFlag(true);
-		Config::getInstance()->incrementDumpNumber();
+		config->incrementDumpNumber();
+	} else if(config->INTER_WRITESET_ANALYSIS_ENABLE &&
+			  currJMPLength > item->getThreshold()){
+		item->incrementCurrNumberJMP();
+		config->incrementDumpNumber();
 	}
-	else{
-		if(Config::getInstance()->INTER_WRITESET_ANALYSIS_ENABLE == true && currJMPLength > item->getThreshold()){
-			item->incrementCurrNumberJMP();
-			Config::getInstance()->incrementDumpNumber();
-		}
-	}
-	
 }
 
 
@@ -233,46 +245,50 @@ BOOL OepFinder::analysis(WriteInterval* item, INS ins, ADDRINT prev_ip, ADDRINT 
 	return OEPFINDER_HEURISTIC_FAIL; /* TODO: type seems to be wrong */
 }
 
-UINT32 OepFinder::DumpAndFixIAT(ADDRINT curEip){
-	//Getting Current process PID and Base Address
-	UINT32 pid = W::GetCurrentProcessId();
-	Config * config = Config::getInstance();
+UINT32 OepFinder::dumpAndFixIAT(ADDRINT curEip, W::DWORD pid, Config* config){
+	// WAS: Getting Current process PID and Base Address (DCD: base address?)
 	string outputFile = config->getWorkingDumpPath();
 	string reconstructed_imports_file  = config->getCurrentReconstructedImportsPath();
 	string tmpDump = outputFile + "_dmp";
 	//std::wstring tmpDump_w = std::wstring(tmpDump.begin(), tmpDump.end());
 	string plugin_full_path = config->PLUGIN_FULL_PATH;	
 	MYINFO("Calling scylla with : Current PID %d, Current output file dump %s, Plugin %d",pid, outputFile.c_str(), config->PLUGIN_FULL_PATH.c_str());
+	
 	// -------- Scylla launched as an exe --------	
 	ScyllaWrapperInterface *sc = ScyllaWrapperInterface::getInstance();	
-	UINT32 result = sc->launchScyllaDumpAndFix(pid, curEip, outputFile, tmpDump, config->CALL_PLUGIN_FLAG, config->PLUGIN_FULL_PATH, reconstructed_imports_file);
-	if(result != SCYLLA_SUCCESS_FIX){
-		MYERRORE("Scylla execution Failed error %d ",result);
+	UINT32 result = sc->launchScyllaDumpAndFix(pid,
+											   curEip,
+											   outputFile,
+											   tmpDump,
+											   config->CALL_PLUGIN_FLAG,
+											   config->PLUGIN_FULL_PATH,
+											   reconstructed_imports_file);
+	if (result != SCYLLA_SUCCESS_FIX) {
+		MYERRORE("Scylla execution: Failed with error %d", result);
 		return result;
-	};
-	MYINFO("Scylla execution Success");
+	}
+
+	MYINFO("Scylla execution: Success");
 	return SCYLLA_SUCCESS_FIX;
 }
 
 
-VOID OepFinder::DumpAndCollectHeap(WriteInterval* item, ADDRINT curEip, int dumpAndFixResult){
-
+VOID OepFinder::dumpAndCollectHeap(WriteInterval* item, ADDRINT curEip, int dumpAndFixResult){
 	HeapModule *heapM = HeapModule::getInstance();
 	ProcInfo *pInfo = ProcInfo::getInstance();
-	std::map<std::string , HeapZone> hzs = pInfo->getHeapMap();
-	std::map<std::string , std::string> hzs_dumped = pInfo->getDumpedHZ();
+	std::map<std::string, HeapZone> hzs = pInfo->getHeapMap(); // TODO reference?
+	std::map<std::string, std::string> hzs_dumped = pInfo->getDumpedHZ(); // TODO reference?
 
 	MYPRINT("\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
 	MYPRINT("- - - - - - - - - - - - - - - - - - - - - STAGE 2: DUMP HEAP - - - - - - - -- - - - - - - - - - - - - - - - -");
 	MYPRINT("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
 
-	// if the curEip is in an heap zones let's save it inside the PE dumped 
-	heapM->checkHeapWxorX(item, curEip,dumpAndFixResult);
+	// if the curEip is in an heap zone let's save it inside the PE dumped 
+	heapM->checkHeapWxorX(item, curEip, dumpAndFixResult);
 
-	// In any case if there are any heap-zones let's save them in a separate folder
-	if(hzs.size() > 0){
-		heapM->saveHeapZones(hzs,hzs_dumped);
+	// in any case if there are heap zones let's save them in a separate folder
+	if (hzs.size() > 0){
+		heapM->saveHeapZones(hzs, hzs_dumped);
 	}
-
 }
 

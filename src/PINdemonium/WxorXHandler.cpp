@@ -4,17 +4,16 @@
 
 WxorXHandler* WxorXHandler::instance = 0;
 
-WxorXHandler* WxorXHandler::getInstance()
-{
-	if (instance == 0)
+WxorXHandler* WxorXHandler::getInstance() {
+	if (instance == nullptr)
 		instance = new WxorXHandler();
 	return instance;
 }
 
 WxorXHandler::WxorXHandler(){
 	this->pid = W::GetCurrentProcessId();
-	this->WriteSetContainer.insert(std::pair<W::DWORD,std::vector<WriteInterval>>(this->pid, std::vector<WriteInterval>()));
-	
+	this->WriteSetContainer.insert(std::pair<W::DWORD,std::vector<WriteInterval>>
+										    (this->pid, std::vector<WriteInterval>()));
 }
 
 

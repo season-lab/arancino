@@ -16,8 +16,8 @@ public:
 	//getter
 	ADDRINT getAddrBegin();
 	ADDRINT getAddrEnd();
-	UINT32 getBrokenFlag();
-	UINT32 getThreshold();
+	BOOL getBrokenFlag();
+	ADDRINT getThreshold();
 	UINT32 getCurrNumberJMP();
 	BOOL getHeapFlag();
 	UINT32 getDetectedFunctions();

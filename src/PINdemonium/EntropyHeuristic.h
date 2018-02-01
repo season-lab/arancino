@@ -7,5 +7,4 @@ class EntropyHeuristic
 {
 public:
 	UINT32 run();
-	float GetEntropy();
 };

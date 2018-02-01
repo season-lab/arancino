@@ -134,16 +134,15 @@ void ProcInfo::insertSection(Section section){
 	this->Sections.push_back(section);
 }
 
-//return the section's name where the IP resides
-string ProcInfo::getSectionNameByIp(ADDRINT ip){
-	string s = "";
-	for(unsigned int i = 0; i < this->Sections.size(); i++) {
+//return the name of the section where an address resides
+string ProcInfo::getSectionNameByIp(ADDRINT addr){
+	for (UINT32 i = 0; i < this->Sections.size(); i++) {
 		Section item = this->Sections.at(i);
-		if(ip >= item.begin && ip <= item.end){
-			s = item.name;
+		if(addr >= item.begin && addr <= item.end){
+			return item.name;
 		}
 	}
-	return s;
+	return string();
 }
 
 // insert the mmory range in the current list of memory ranges detected on the heap

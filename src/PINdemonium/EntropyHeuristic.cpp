@@ -3,17 +3,16 @@
 float threshold=0.2f;
 
 UINT32 EntropyHeuristic::run(){
-	bool result = false;
 	ProcInfo *proc_info = ProcInfo::getInstance();
 	float entropy_value = proc_info->GetEntropy();
 	float initial_entropy = proc_info->getInitialEntropy();
-	float difference = abs(entropy_value - initial_entropy)/initial_entropy;
-	MYINFO("ENTROPY INITIAL IS %f" , initial_entropy);
+	float difference = std::abs(entropy_value - initial_entropy)/initial_entropy;
+	
+	MYINFO("INITIAL ENTROPY IS %f" , initial_entropy);
 	MYINFO("CURRENT ENTROPY IS %f" , entropy_value);
 	MYINFO("ENTROPY DIFFERERNCE IS %f" , difference);
-	if( difference > threshold){
-		result = true;
-	}
+	
+	bool result = (difference > threshold);
 
 	/* TODO: as of now Pin would need an ad-hoc internal exception handler */
 	//try{
@@ -24,7 +23,7 @@ UINT32 EntropyHeuristic::run(){
 	//		MYERRORE("Problem creating ReportEntropy report");
 	//}
 
-	if(result == true){
+	if (result){
 		return OEPFINDER_FOUND_OEP;
 	}
 	else return OEPFINDER_HEURISTIC_FAIL;

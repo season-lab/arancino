@@ -15,8 +15,8 @@ class HeapModule
 public:
 	//singleton instance
 	static HeapModule* getInstance();
-	VOID saveHeapZones(std::map<std::string,HeapZone> hzs, std::map<std::string,std::string> hzs_dumped);
 	UINT32 checkHeapWxorX(WriteInterval* item, ADDRINT curEip, int dumpAndFixResult);
+	VOID saveHeapZones(std::map<std::string, HeapZone> &hzs, std::map<std::string, std::string> &hzs_dumped);
 
 private:
 	HeapModule(void);
