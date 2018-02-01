@@ -26,7 +26,7 @@ VOID handleWrite(ADDRINT ip, ADDRINT start_addr, UINT32 size, void *handler){
 //if so then set the proper flags in ProcInfo
 void OepFinder::handlePopadAndPushad(INS ins){
 	string s = INS_Disassemble(ins);
-	if( s.compare("popad ") == 0){
+	if( s.compare("popad ") == 0){ // TODO check for Pin 3+
 		ProcInfo::getInstance()->setPopadFlag(TRUE);
 		return;
 	}
@@ -67,11 +67,12 @@ static VOID DoBreakpoint(const CONTEXT *ctxt, THREADID tid, ADDRINT ip)
 
 
 
-// - Check if the current instruction is a write  ----> add the instrumentation routine that register the write informations
-// - Chek if the current instruction belongs to a library  -----> return
-// - Chek if the current instruction is a popad or a pushad  -----> update the flag in ProcInfo
-// - Check if the current instruction broke the W xor X law  -----> trigger the heuristics and write the report
-// - Set the previous ip to the current ip ( useful for some heuristics like jumpOuterSection )
+// Check if the given instruction
+// - writes to memory ----> add instrumentation routine to register write information
+// - belongs to a known library  -----> return
+// - is a popad or pushad  -----> update the flag in ProcInfo
+// - broke the W xor X law  -----> trigger the heuristics and write the report
+// - update previous IP info in ProcInfo (useful for some heuristics like jumpOuterSection)
 UINT32 OepFinder::IsCurrentInOEP(INS ins){
 	FilterHandler *filterHandler = FilterHandler::getInstance();
 	ProcInfo *proc_info = ProcInfo::getInstance();		
@@ -79,21 +80,31 @@ UINT32 OepFinder::IsCurrentInOEP(INS ins){
 	ADDRINT curEip = INS_Address(ins);
 	ADDRINT prev_ip = proc_info->getPrevIp();
 	//check if current instruction is a write
-	if(wxorxHandler->isWriteINS(ins)){
-		INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)handleWrite, IARG_INST_PTR, IARG_MEMORYWRITE_EA, IARG_MEMORYWRITE_SIZE, IARG_PTR, this->wxorxHandler, IARG_END);
+	if (INS_IsMemoryWrite(ins)) {
+		INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)handleWrite,
+							IARG_INST_PTR, // arg 1: address of instrumented instruction
+							IARG_MEMORYWRITE_EA, // arg2: effective address (TODO: allows registering a MEMORY_ADDR_TRANS_CALLBACK)
+							IARG_MEMORYWRITE_SIZE, // arg3: size in bytes of memory write
+							IARG_PTR, // arg4: address of wxorxHandler()
+							this->wxorxHandler,
+							IARG_END);
 	}
-	//Tracking violating WxorX instructions
-	//Filter instructions inside a known library
+
+	/* Track instructions that can violate WxorX */
+
+	// Ignore instructions from known libraries
 	if(proc_info->isKnownLibraryInstruction(curEip)){
 		return OEPFINDER_INS_FILTERED; 
 	}
-	//check if the current instruction is a popad or a pushad
+
+	// update flags in ProcInfo if the instruction is a popad or a pushad
 	this->handlePopadAndPushad(ins);	
-	//If the instruction violate WxorX return the index of the WriteItem in which the EIP is
-	//If the instruction doesn't violate WxorX return -1
+	
+	// if the instruction violates WxorX, return the index of the WriteItem in which
+	// the EIP is, othewrise return a code for no violation
 	WriteInterval* item = wxorxHandler->getWxorXinterval(curEip);
 	//W xor X broken
-	if(item != NULL ){
+	if (item != NULL ){
 		Config *config = Config::getInstance();
 		if(config->getDumpNumber() < config->SKIP_DUMP ){
 			//MYINFO("Skipping  Dump Number: %d Dumps to skip: %d", (int)Config::getInstance()->getDumpNumber(), config->SKIP_DUMP);

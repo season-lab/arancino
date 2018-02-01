@@ -144,10 +144,10 @@ void imageLoadCallback(IMG img,void *){
 	}
 }
 
-// trigger the instrumentation routine for each instruction
-void instrumentInstruction(INS ins,void *v){
-	// check the current mode of operation
+// trigger the instrumentation routine(s) for each instruction
+void instrumentInstruction(INS ins, void *v){
 	Config *config = Config::getInstance();
+	
 	if(config->ANTIEVASION_MODE){
 		thider.addInstrumentation(ins);
 	}

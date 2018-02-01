@@ -62,8 +62,8 @@ void PINshield::addInstrumentation(INS ins) {
 	}
 }
 
-ADDRINT handleRead(ADDRINT eip, ADDRINT read_addr, void *fake_mem_h){
-	FakeReadHandler* theFakeReadH = (FakeReadHandler*)fake_mem_h;
+ADDRINT PINshield::handleRead(ADDRINT eip, ADDRINT read_addr, void *fakeReadH) {
+	FakeReadHandler* theFakeReadH = (FakeReadHandler*)fakeReadH;
 	ADDRINT fakeAddr = theFakeReadH->getFakeMemory(read_addr, eip);
 	
 	// the function invoked by the FakeReadHandler may return a NULL address 
@@ -88,8 +88,7 @@ ADDRINT handleRead(ADDRINT eip, ADDRINT read_addr, void *fake_mem_h){
 	return fakeAddr;
 }
 
-ADDRINT handleWrite(ADDRINT eip, ADDRINT write_addr, void *fakeWriteH){	
-	
+ADDRINT PINshield::handleWrite(ADDRINT eip, ADDRINT write_addr, void *fakeWriteH) {	
 	FakeWriteHandler* theFakeWriteH = (FakeWriteHandler *)fakeWriteH;
 	//get the new address of the memory operand (same as before if it is inside the whitelist otherwise a NULL poiter)
 	ADDRINT fakeAddr = theFakeWriteH->getFakeWriteAddress(write_addr);
@@ -111,7 +110,7 @@ ADDRINT handleWrite(ADDRINT eip, ADDRINT write_addr, void *fakeWriteH){
 
 //get the first scratch register available
 //we build a vector in order to deal with multiple read operands
-static REG GetScratchReg(UINT32 index)
+inline REG PINshield::GetScratchReg(UINT32 index)
 {
     static std::vector<REG> regs;
     while (index >= regs.size()) {

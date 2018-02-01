@@ -1,8 +1,9 @@
 #include "WriteInterval.h"
 
-//set the new WriteInterval object with the begin address and the end address of the current write operation
-WriteInterval::WriteInterval(ADDRINT addr_begin, ADDRINT addr_end, BOOL heap_flag)
-{
+#define OVERLAP(x1, y1, x2, y2)		( ((x1) <= (y2)) && ((x2) <= (y1)) )
+
+// create a WriteInterval for the address interval of the current write
+WriteInterval::WriteInterval(ADDRINT addr_begin, ADDRINT addr_end, BOOL heap_flag) {
 	this->addr_begin = addr_begin;
 	this->addr_end = addr_end;
 	this->broken_flag = 0;
@@ -11,9 +12,6 @@ WriteInterval::WriteInterval(ADDRINT addr_begin, ADDRINT addr_end, BOOL heap_fla
 	this->detectedFunctions = 0;
 }
 
-WriteInterval::~WriteInterval(void)
-{
-}
 
 //----------------------- GETTER / SETTER -----------------------
 
@@ -64,27 +62,30 @@ void WriteInterval::setDetectedFunctions(UINT32 numberOfFunctions){
 //check if the value of the given address is between addr_begin and addr_end
 BOOL WriteInterval::checkUpdate(ADDRINT start_addr, ADDRINT end_addr){
 	//if the address interval ISN'T before or after the current interval then we have to udate the instance
-	return !( (start_addr < this->addr_begin && end_addr < this->addr_begin) || (start_addr > this->addr_end && end_addr > this->addr_end) );
+	
+	/* TODO: the original check seems naive, unless addr_begin > addr_end
+	 * return !( (start_addr < this->addr_begin && end_addr < this->addr_begin) ||
+	 *	      (start_addr > this->addr_end && end_addr > this->addr_end) ); */
+	//return !(end_addr < this->addr_begin || start_addr > this->addr_end);
+	//return (start_addr <= this->addr_end) && (this->addr_begin <= end_addr)
+	return OVERLAP(start_addr, end_addr, this->addr_begin, this->addr_end);
 }
 
 //update the current obj
 VOID WriteInterval::update(ADDRINT start_addr, ADDRINT end_addr, BOOL heap_flag){
 	this->heap_flag = heap_flag;
-	//if the new write overlaps the WriteInteval at the end then we have to update the end_addr 
-	if( (start_addr >= this->addr_begin) && (start_addr <= this->addr_end) && (end_addr > this->addr_end) ){
+	// if the new write overlaps the WriteInteval at the end we update the end_addr 
+	if ( (start_addr >= this->addr_begin) && (start_addr <= this->addr_end) && (end_addr > this->addr_end) ){
 		this->addr_end = end_addr;
-		return;
 	}
-	//if the new write overlaps the WriteInteval at the begin then we have to update the addr_begin
-	if( (start_addr < this->addr_begin) && (end_addr >= this->addr_begin) && (end_addr <= this->addr_end) ){
+	// if the new write overlaps the WriteInteval at the begin we update the addr_begin
+	else if ( (start_addr < this->addr_begin) && (end_addr >= this->addr_begin) && (end_addr <= this->addr_end) ){
 		this->addr_begin = start_addr;
-		return;
 	}
-	//if the new write contains the Write interval we have to update the add_begin and addr end
-	if( (start_addr < this->addr_begin) && (end_addr > this->addr_begin) ){
+	//if the new write contains the Write interval we update both endpoints
+	else if ( (start_addr < this->addr_begin) && (end_addr > this->addr_begin) ){
 		this->addr_begin = start_addr;
 		this->addr_end = end_addr;
-		return;
 	}
 }
 
@@ -92,8 +93,3 @@ VOID WriteInterval::update(ADDRINT start_addr, ADDRINT end_addr, BOOL heap_flag)
 BOOL WriteInterval::checkInside(ADDRINT ip){
 	return (ip >= this->addr_begin && ip <= this->addr_end);
 }
-
-
-
-
- 
