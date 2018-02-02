@@ -433,7 +433,7 @@ VOID ProcInfo::addThreadStackAddress(ADDRINT addr){
 	W::SIZE_T numBytes = W::VirtualQuery((W::LPCVOID)addr, &mbi, sizeof(mbi));
 	//get the stack base address by searching the highest address in the allocated memory containing the stack Address
 	if(mbi.State == MEM_COMMIT || mbi.Type == MEM_PRIVATE ){
-		stack.EndAddress = (int)mbi.BaseAddress+ mbi.RegionSize;
+		stack.EndAddress = (ADDRINT)mbi.BaseAddress + mbi.RegionSize;
 	}
 	else{
 		stack.EndAddress = addr;

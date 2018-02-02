@@ -110,7 +110,7 @@ ADDRINT FakeReadHandler::getFakeMemory(ADDRINT address, ADDRINT eip){
 ADDRINT FakeReadHandler::TickMultiplierPatch(ADDRINT curReadAddr, ADDRINT addr){
 	W::ULONG tick_multiplier; // 4 bytes on Win32 & Win64
 	ADDRINT kuser = KUSER_SHARED_DATA_ADDRESS + TICK_MULTIPLIER_OFFSET; //from 0x7ffe0000 to 0x7ffe0004
-	memcpy(&tick_multiplier, (const void *)kuser, sizeof(int));
+	memcpy(&tick_multiplier, (const void *)kuser, sizeof(W::ULONG));
 	tick_multiplier = tick_multiplier / Config::TICK_DIVISOR;
 	memcpy((void*)curFakeMemory.c_str(), (const void*)&tick_multiplier, sizeof(W::ULONG));
 	ADDRINT patchAddr = (ADDRINT)&curFakeMemory;
