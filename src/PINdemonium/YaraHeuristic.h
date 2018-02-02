@@ -23,7 +23,7 @@ private:
 					std::string yara_input_path,
 					std::string yara_output,
 					W::PROCESS_INFORMATION *piResults);
-	UINT32 getFileSize(FILE *fp);
+	//UINT32 getFileSize(FILE *fp);
 	std::vector<std::string> parseYaraOutput(std::string output);  
 	std::vector<std::string> analyseYara(std::string dump_to_analyse);
 
