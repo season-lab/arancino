@@ -49,7 +49,7 @@ VOID patchRdtsc(ADDRINT ip, CONTEXT *ctxt, ADDRINT cur_eip ){
 //----------------------------- END PATCH FUNCTIONS -----------------------------//
 
 
-PatternMatchModule::PatternMatchModule(void)
+PatternMatchModule::PatternMatchModule()
 {
 	//set the initial patch pointer to zero (an invalid address) 
 	this->curPatchPointer = 0x0;
@@ -58,11 +58,6 @@ PatternMatchModule::PatternMatchModule(void)
 	this->patchesMap.insert( std::pair<string,AFUNPTR>("int 0x2e",(AFUNPTR)patchInt2e) );
 	//this->patchesMap.insert( std::pair<string,AFUNPTR>("fsave",(AFUNPTR)patchFsave) );
 	//this->patchesMap.insert( std::pair<string,AFUNPTR>("rdtsc ",(AFUNPTR)patchRdtsc) );	
-}
-
-
-PatternMatchModule::~PatternMatchModule(void)
-{
 }
 
 //search if we have a patch for the current instruction and if yes insert the patch in the next round
@@ -98,14 +93,14 @@ bool PatternMatchModule::patchDispatcher(INS ins, ADDRINT curEip){
 		return true;
 	}
 	*/
-	//search if we have a patch foir this instruction
+	// check if we have a patch for this instruction
 	std::map<string, AFUNPTR>::iterator item = this->patchesMap.find(disass_instr);
 	if(item != this->patchesMap.end()){
 		//if so retrieve the correct function pointer for the analysis routine at the next round
 		this->curPatchPointer = map_at(patchesMap, disass_instr);
 		return true;
 	}
-	//otherwise continue the analysis in the class PINshield /* TODO refactor if we want to consider other defenses */
-	return false;
 
+	//otherwise continue the analysis in the class PINshield
+	return false; /* TODO DCD refactor if we want to add other defenses */
 }

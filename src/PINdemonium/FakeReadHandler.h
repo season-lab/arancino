@@ -31,25 +31,24 @@ typedef struct _MODULEINFO {
 typedef W::DWORD (WINAPI *MyEnumProcessModules)(W::HANDLE hProcess, W::HMODULE *lphModule, W::DWORD cb, W::LPDWORD lpcbNeeded);
 typedef W::DWORD (WINAPI *MyGetModuleInformation)(W::HANDLE hProcess, W::HMODULE HModule, LPMODULEINFO module_info, W::DWORD  cb);
 
-/*function which return the ADDRINT containing the fake memory content for the curAddr address
-	curAddr: current address which is queried
-	startAddr: Startaddress of the FakeMemoryItem which contain the curAddr (used to take care of offsets inside the FakeMemoryItem range)
+/*function that returns the ADDRINT for the fake memory content for the given curAddr address
+	curAddr: current address that is queried
+	startAddr: start address of the FakeMemoryItem that contains the curAddr (used to take care of offsets inside the FakeMemoryItem range)
 	return: the address of the faked memory
 */
-typedef ADDRINT (* fakeMemoryFunction)(ADDRINT curAddr, ADDRINT startAddr);
+typedef ADDRINT (*fakeMemoryFunction)(ADDRINT curAddr, ADDRINT startAddr);
 
 typedef struct FakeMemoryItem{
 	ADDRINT StartAddress;
 	ADDRINT EndAddress;
 	fakeMemoryFunction func;
-
-}FakeMemoryItem;
+} FakeMemoryItem;
 
 
 class FakeReadHandler
 {
 private:
-	//list containig the MemoryAddress which needs to me faked
+	//list of memory addresses that need to be faked
 	std::vector<FakeMemoryItem> fakeMemory;
 	ProcInfo  *pInfo;
 	// fakeMemoryFunction to handle ntdll inspection
@@ -63,10 +62,9 @@ private:
 	W::HINSTANCE hPsapi;
 
 public:
-	FakeReadHandler(void);
-	~FakeReadHandler(void);
+	FakeReadHandler();
 	VOID initFakeMemory();
 	static BOOL isAddrInWhiteList(ADDRINT address);
-	BOOL CheckInCurrentDlls(UINT32 address_to_check);
+	BOOL checkInCurrentDlls(ADDRINT address_to_check); // DCD code using it is commented
 	ADDRINT getFakeMemory(ADDRINT address, ADDRINT eip);
 };

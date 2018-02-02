@@ -62,19 +62,16 @@ std::vector<WriteInterval>& WxorXHandler::getWxorXintervalInjected(W::DWORD pid)
 
 }
 
-
 VOID WxorXHandler::incrementCurrJMPNumber(int writeItemIndex){
 	std::vector<WriteInterval> &currentWriteSet = map_at(WriteSetContainer, this->pid);
 	currentWriteSet[writeItemIndex].incrementCurrNumberJMP();
 }
 
-
 //Clear the currentWriteSet for injection in pid different from current programs 
 VOID WxorXHandler::clearWriteSet(W::DWORD pid){
 	if(pid != this->pid){
-		WriteSetContainer[pid] = std::vector<WriteInterval>();
+		WriteSetContainer[pid].clear(); // = std::vector<WriteInterval>();
 	}
-
 }
 
 VOID WxorXHandler::displayWriteSet(W::DWORD pid){	

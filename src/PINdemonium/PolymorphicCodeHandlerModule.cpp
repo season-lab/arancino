@@ -2,15 +2,11 @@
 #include "ProcInfo.h"
 
 
-PolymorphicCodeHandlerModule::PolymorphicCodeHandlerModule(void)
+PolymorphicCodeHandlerModule::PolymorphicCodeHandlerModule()
 {
 	this->trace_head = 0x0;
 	this->trace_tail = 0x0;
 	this->first_written_address_in_trace = 0x0;
-}
-
-PolymorphicCodeHandlerModule::~PolymorphicCodeHandlerModule(void)
-{
 }
 
 // -------------------- BEGIN PIN ANALYSIS ROUTINE -------------------- //
@@ -20,7 +16,7 @@ VOID polymorphicCodeHandler(ADDRINT eip, ADDRINT write_addr, void *pcpatchesH){
 	PolymorphicCodeHandlerModule *pcpatches = (PolymorphicCodeHandlerModule *)pcpatchesH;
 	// check if the address that the program is about to write to is inside the current trace 
 	if (write_addr >= pcpatches->getTraceHead() && write_addr <= pcpatches->getTraceTail()){
-		/* DCD it seems they left this for future work */
+		/* DCD it seems they left this to future work */
 		// we want to keep track only the first address written in the trace
 		// because it will be the first executed (NOT TRUE, THE PROGRAM CAN
 		// JUMP ON ANOTHER WRITTEN ADRESS AND SKIP THE FIRST ONE -- TO BE MODIFIED --)

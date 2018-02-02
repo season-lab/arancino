@@ -1,7 +1,7 @@
 #include "Report.h"
 
 // singleton
-Report* Report::instance = 0;
+Report* Report::instance = nullptr;
 
 Report* Report::getInstance()
 {
@@ -12,15 +12,13 @@ Report* Report::getInstance()
 
 Report::Report(void)
 {
-	already_initialized = false;
-	
+	initialized = false;
 }
 
 void Report::initializeReport(string process_name, ADDRINT startAddr , ADDRINT endAddr, float initial_entropy){
 	//already initialized report (avoid problems when called multiple times)
-	if(already_initialized == true){
-		return;
-	}
+	if (initialized) return;
+
 	report_path = Config::getInstance()->getReportPath();
 
 	//create the general information object and populate it
@@ -30,7 +28,7 @@ void Report::initializeReport(string process_name, ADDRINT startAddr , ADDRINT e
 	report["information"] = info_json;
 	report["dumps"] = Json::Value(Json::arrayValue);
 	writeJsonToReport(report);
-	already_initialized = true;
+	initialized = true;
 
  }
 

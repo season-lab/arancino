@@ -6,11 +6,6 @@ FakeWriteHandler::FakeWriteHandler(void)
 	pInfo = ProcInfo::getInstance();	
 }
 
-
-FakeWriteHandler::~FakeWriteHandler(void)
-{
-}
-
 //hijack the write operation
 ADDRINT FakeWriteHandler::getFakeWriteAddress(ADDRINT cur_addr){	
 	if(pInfo->isInsideProtectedSection(cur_addr)){

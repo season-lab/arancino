@@ -46,7 +46,7 @@ UINT32 ScyllaWrapperInterface::launchScyllaDumpAndFix(W::DWORD pid, ADDRINT curE
 
 	if(!W::CreateProcess(scylla.c_str(),(char *)scyllaArgs.c_str(),NULL,NULL,FALSE,0,NULL,NULL,&si,&pi)){
 		MYERRORE("(INITFUNCTIONCALL)Can't launch Scylla");
-		return -5;
+		return ScyllaWrapperInterface::ERROR_LAUNCH;
 	}
 	W::GetExitCodeProcess(pi.hProcess, &exitCode);
 	W::WaitForSingleObject(pi.hProcess,INFINITE);
@@ -62,11 +62,8 @@ UINT32 ScyllaWrapperInterface::launchScyllaDumpAndFix(W::DWORD pid, ADDRINT curE
 	
 	}
 	MYINFO("Scylla Finished");
-	return SCYLLA_SUCCESS_FIX;
+	return ScyllaWrapperInterface::SUCCESS_FIX;
 }
-
-
-
 
 void ScyllaWrapperInterface::addImportFunctionToDumpReport(string reconstructed_imports_file){
 	string line;

@@ -20,12 +20,12 @@ BOOL Helper::existFile (std::string name) {
 }
 
 /*
-Split a string in an array based on a delimiter character
+Split a string into an array based on a delimiter character
 */
-vector<string> Helper::split(const string &s, char delim) {
-    vector<string> elems;
-    stringstream ss(s);
-    string item;
+std::vector<std::string> Helper::split(const std::string &s, char delim) {
+    std::vector<std::string> elems;
+    std::stringstream ss(s);
+    std::string item;
     while (getline(ss, item, delim)) {
         elems.push_back(item);
     }
@@ -33,7 +33,7 @@ vector<string> Helper::split(const string &s, char delim) {
 }
 
 
-string Helper::replaceString(string str, const string& from, const string& to) {
+std::string Helper::replaceString(std::string str, const std::string& from, const std::string& to) {
     size_t start_pos = 0;
     while((start_pos = str.find(from, start_pos)) != std::string::npos) {
         str.replace(start_pos, from.length(), to);
@@ -56,8 +56,8 @@ bool Helper::writeBufferToFile(unsigned char *buffer,UINT32 dwBytesToWrite,strin
 									NULL);                  // no attr. template
 	
 	// ? : trick to avoid warning from differences between W::BOOL and C++ bool
-	return  W::WriteFile(hFile,           // open file handle
-						buffer,      // start of data to write
+	return W::WriteFile(hFile,           // open file handle
+						buffer,			 // start of data to write
 						dwBytesToWrite,  // number of bytes to write
 						&dwBytesWritten, // number of bytes that were written
 						NULL)            // no overlapped structure

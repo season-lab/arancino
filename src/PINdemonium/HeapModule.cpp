@@ -16,7 +16,8 @@ return instance;
 
 UINT32 HeapModule::checkHeapWxorX(WriteInterval* item, ADDRINT curEip, int dumpAndFixResult){
 	// include in the PE the dump of the current heap zone where a WxorX violation happened 
-	if (item->getHeapFlag() && dumpAndFixResult != SCYLLA_ERROR_FILE_FROM_PID && dumpAndFixResult != SCYLLA_ERROR_DUMP) {
+	if (item->getHeapFlag() && dumpAndFixResult != ScyllaWrapperInterface::ERROR_FILE_FROM_PID
+							&& dumpAndFixResult != ScyllaWrapperInterface::ERROR_DUMP) {
 		ADDRINT beginAddr = item->getAddrBegin();
 		ADDRINT endAddr = item->getAddrEnd();
 		MYPRINT("[INFO][OepFinder.cpp] - EIP ON THE HEAP - DUMPING THE HEAP-ZONE BEGIN 0x%08x | END 0x%08x", beginAddr, endAddr);

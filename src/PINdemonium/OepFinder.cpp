@@ -1,5 +1,6 @@
 #include "OepFinder.h"
 #include "porting.h"
+#include "ScyllaWrapperInterface.h"
 
 OepFinder::OepFinder(void){
 	this->wxorxHandler = WxorXHandler::getInstance();
@@ -258,13 +259,13 @@ UINT32 OepFinder::dumpAndFixIAT(ADDRINT curEip, W::DWORD pid, Config* config){
 											   config->CALL_PLUGIN_FLAG,
 											   config->PLUGIN_FULL_PATH,
 											   reconstructed_imports_file);
-	if (result != SCYLLA_SUCCESS_FIX) {
+	if (result != ScyllaWrapperInterface::SUCCESS_FIX) {
 		MYERRORE("Scylla execution: Failed with error %d", result);
 		return result;
 	}
 
 	MYINFO("Scylla execution: Success");
-	return SCYLLA_SUCCESS_FIX;
+	return ScyllaWrapperInterface::SUCCESS_FIX;
 }
 
 

@@ -6,11 +6,9 @@
 #include "TimeTracker.h"
 #include <time.h>
 #include <set>
-//#include <unordered_set>
 #include "Helper.h"
 #include <map>
 #include "md5.h"
-
 
 namespace W{
 	#include "windows.h"
@@ -22,13 +20,14 @@ namespace W{
 
 #define MAX_STACK_SIZE 0x100000    //Used to define the memory range of the stack
 #define TEB_SIZE 0xfe0 	
+
+// DCD https://www.geoffchappell.com/studies/windows/km/ntoskrnl/structs/kuser_shared_data.htm
 #define KUSER_SHARED_DATA_ADDRESS 0x7ffe0000
 #define KUSER_SHARED_DATA_SIZE 0x3e0 
 
-
 typedef struct PEB {
 	W::BYTE padding1[2];
-	W::BYTE BeingDebugged ;
+	W::BYTE BeingDebugged;
 	W::BYTE padding2[53];
 	W::PVOID ApiSetMap;
 	W::BYTE padding3[16];
@@ -47,7 +46,6 @@ typedef struct PEB {
 	W::BYTE padding9[52];
 	W::PVOID pContextData;
 	W::BYTE padding10[4];
-
 }PEB;
 
 struct MemoryRange{
@@ -55,15 +53,14 @@ struct MemoryRange{
 	ADDRINT EndAddress;
 };
 
-//This struct will track the library loaded
-//at program startup
+// track library loaded at program startup
 struct LibraryItem{
 	ADDRINT StartAddress;
 	ADDRINT EndAddress;
 	string name;
 };
 
-//memorize the PE section information
+// memorize PE section information
 struct Section {
 	ADDRINT begin;
 	ADDRINT end;
@@ -109,7 +106,7 @@ public:
 	std::set<ADDRINT> getJmpBlacklist(); /* DCD: unordered_set */
 	//ADDRINT getPINVMStart();
 	//ADDRINT getPINVMEnd();
-	std::map<string ,HeapZone> getHeapMap();
+	std::map<string,HeapZone> getHeapMap();
 	std::map<string,string> getDumpedHZ();
 
 	/* setter */
@@ -182,10 +179,10 @@ private:
 	ProcInfo::ProcInfo();
 	ADDRINT first_instruction;
 	ADDRINT prev_ip;
-	std::set<string> interresting_processes_name; /* DCD: was: unordered_set - TODO unused! */
-	std::set<unsigned int> interresting_processes_pid; /* DCD: unordered_set - TODO almost unused! */
-	MemoryRangeVector stacks;				   //Set of Stack one for each thread
+	//std::set<string> interesting_processes_name; /* DCD: unused - was: unordered_set */
+	std::set<UINT32> interesting_processes_pid; /* DCD: unordered_set - TODO almost unused! */
 	MemoryRange mainImg;
+	MemoryRangeVector stacks;				   //Set of Stack one for each thread
 	MemoryRangeVector tebs;                     //Teb Base Address
 	MemoryRangeVector genericMemoryRanges;
 	MemoryRangeVector mappedFiles;
@@ -221,9 +218,5 @@ private:
 	string libToString(LibraryItem lib);
 	//long long FindEx(W::HANDLE hProcess, W::LPVOID MemoryStart, W::DWORD MemorySize, W::LPVOID SearchPattern, W::DWORD PatternSize, W::LPBYTE WildCard);
 	//void retrieveInterestingPidFromNames();
-	
-
-
-
 };
 

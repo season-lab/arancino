@@ -7,7 +7,7 @@
 class HookFunctions
 {
 public:
-	HookFunctions(void);
+	HookFunctions();
 	void hookDispatcher(IMG img);
 
 private:

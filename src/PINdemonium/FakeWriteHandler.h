@@ -8,7 +8,6 @@ class FakeWriteHandler
 {
 public:
 	FakeWriteHandler(void);
-	~FakeWriteHandler(void);
 	ADDRINT getFakeWriteAddress(ADDRINT cur_addr);
 
 private:

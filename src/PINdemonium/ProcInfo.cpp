@@ -52,8 +52,8 @@ void ProcInfo::setProcName(string name){
 	size_t pos_exe_name = name.find_last_of("\\");
 	string exe_name = name.substr(pos_exe_name + 1);
 	//get the name from the last occurrence of / till the end of the string minus the file extension
-	exe_name = Helper::replaceString(exe_name, " ", "");
-	this->proc_name =  exe_name.substr(0, exe_name.length() - 4);
+	exe_name = Helper::replaceString(exe_name, " ", ""); // TODO DCD check as I'm not sure this works as expected
+	this->proc_name = exe_name.substr(0, exe_name.length() - 4);
 }
 
 void ProcInfo::setInitialEntropy(float Entropy){
@@ -531,7 +531,7 @@ BOOL ProcInfo::isInsideProtectedSection(ADDRINT address){
 VOID ProcInfo::setCurrentMappedFiles(){
 	W::MEMORY_BASIC_INFORMATION mbi;
 	W::SIZE_T numBytes;
-	ADDRINT MyAddress = 0;	
+	ADDRINT address = 0;	
 	mappedFiles.clear(); // delete old entries
 
 	/* TODO - PinCRT lacks proper documentation for the 'type' field,
@@ -545,7 +545,7 @@ VOID ProcInfo::setCurrentMappedFiles(){
 	W::PVOID maxAddr = 0;
 	while (1) {
 		//OS_QueryMemory(curPid, address, &info);
-		numBytes = W::VirtualQuery((W::LPCVOID)MyAddress, &mbi, sizeof(mbi));
+		numBytes = W::VirtualQuery((W::LPCVOID)address, &mbi, sizeof(mbi));
 		
 		// workaround for not getting stuck on the last valid block (see above)
 		if (maxAddr && maxAddr >= mbi.BaseAddress) break;
@@ -558,7 +558,7 @@ VOID ProcInfo::setCurrentMappedFiles(){
 			range.EndAddress = (ADDRINT)mbi.BaseAddress + mbi.RegionSize;
 			mappedFiles.push_back(range);
 		}
-		MyAddress += mbi.RegionSize;
+		address += mbi.RegionSize;
 	}
 }
 
@@ -665,7 +665,7 @@ BOOL ProcInfo::addProcessHeapsAndCheckAddress(ADDRINT eip){
 
 //-------------------------- Anti process fingerprint --------------
 BOOL ProcInfo::isInterestingProcess(unsigned int pid){
-	return this->interresting_processes_pid.find(pid) != this->interresting_processes_pid.end();
+	return this->interesting_processes_pid.find(pid) != this->interesting_processes_pid.end();
 }
 
 // print the whitelisted memory in a fancy way

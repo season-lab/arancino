@@ -12,8 +12,7 @@ namespace W{
 class PatternMatchModule
 {
 public:
-	PatternMatchModule(void);
-	~PatternMatchModule(void);
+	PatternMatchModule();
 	bool patchDispatcher(INS ins,  ADDRINT curEip);
 
 private:

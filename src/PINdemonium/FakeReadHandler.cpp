@@ -1,10 +1,10 @@
 #include "FakeReadHandler.h"
 #include "porting.h"
 
-FakeReadHandler::FakeReadHandler(void)
+FakeReadHandler::FakeReadHandler()
 {
 	pInfo = ProcInfo::getInstance();
-	//Populating the ntdll function patch  table
+	//Populating the ntdll function patch table
 	ntdllHooksNamesPatch.insert(std::pair<string,string>("KiUserApcDispatcher","\x8D\x84\x24\xDC\x02\x00\x00"));
 	string KiUserPatch("\x64\x8B\x00\x0D\x00\x00\x00",7);// Trick to be able to insert null bytes
 	ntdllHooksNamesPatch.insert(std::pair<string,string>("KiUserCallbackDispatcher",KiUserPatch));
@@ -17,33 +17,29 @@ FakeReadHandler::FakeReadHandler(void)
 	
 }
 
-FakeReadHandler::~FakeReadHandler(void)
-{
-}
-
 ADDRINT FakeReadHandler::ntdllFuncPatch(ADDRINT curReadAddr, ADDRINT ntdllFuncAddr){
 	/* DCD: string patch = ntdllHooksAddrPatch.at(ntdllFuncAddr); */
-	string patch = map_at(ntdllHooksAddrPatch, ntdllFuncAddr);
+	string &patch = map_at(ntdllHooksAddrPatch, ntdllFuncAddr);
 	ADDRINT delta = curReadAddr - ntdllFuncAddr;
-	curFakeMemory = patch.substr(delta,string::npos);
+	curFakeMemory = patch.substr(delta, string::npos);
 	ADDRINT patchAddr = (ADDRINT)&curFakeMemory;
 	MYINFO("read at %08x containig %02x  Patched address %08x with string %02x \n",curReadAddr, *(char *)curReadAddr,patchAddr,*(char *)curFakeMemory.c_str());
 	return patchAddr;
 }
 
-
-
 //populate FakeMemory Array which contains the FakeMemoryItem 
 VOID FakeReadHandler::initFakeMemory(){	
 	//Hide the ntdll hooks
 	for(map<string,string>::iterator it = ntdllHooksNamesPatch.begin(); it != ntdllHooksNamesPatch.end();++it){
-		const char  *funcName = it->first.c_str();
+		// for each (funcName, patch) in ntdllHooksNamesPatch add (funcAddr, patch) to ntdllHooksAddrPatch
+		const char *funcName = it->first.c_str();
 		string patch = it->second;
 		ADDRINT address = (ADDRINT)W::GetProcAddress(W::GetModuleHandle("ntdll.dll"), funcName);		
 		ntdllHooksAddrPatch.insert(std::pair<ADDRINT,string>(address,patch));
+		
 		FakeMemoryItem fakeMem;
 		fakeMem.StartAddress = address;
-		fakeMem.EndAddress = address + patch.length()-1; //-1 beacuse need to exclude the trailing 0x00
+		fakeMem.EndAddress = address + patch.length() - 1; // -1 to exclude the trailing 0x00 // TODO DCD are you sure about that?
 		fakeMem.func = &FakeReadHandler::ntdllFuncPatch;
 		fakeMemory.push_back(fakeMem);
 		MYINFO("Add FakeMemory ntdll %s addr  %08x -> %08x",funcName,fakeMem.StartAddress,fakeMem.EndAddress);
@@ -85,8 +81,8 @@ ADDRINT FakeReadHandler::getFakeMemory(ADDRINT address, ADDRINT eip){
 		}
 	}
 
-		return address;
-		/*
+	return address;
+	/*
 	//Check if the address is inside the WhiteListed addresses( need to return the correct value)
 	if(isAddrInWhiteList(address)){
 		return address;
@@ -98,7 +94,7 @@ ADDRINT FakeReadHandler::getFakeMemory(ADDRINT address, ADDRINT eip){
 		if(p->addProcessHeapsAndCheckAddress(address)){
 			return address;
 		}	  
-		if(CheckInCurrentDlls(address)){
+		if(checkInCurrentDlls(address)){
 			return address;
 		}
 		else{
@@ -112,22 +108,25 @@ ADDRINT FakeReadHandler::getFakeMemory(ADDRINT address, ADDRINT eip){
 
 
 ADDRINT FakeReadHandler::TickMultiplierPatch(ADDRINT curReadAddr, ADDRINT addr){
-	int tick_multiplier; 
+	W::ULONG tick_multiplier; // 4 bytes on Win32 & Win64
 	ADDRINT kuser = KUSER_SHARED_DATA_ADDRESS + TICK_MULTIPLIER_OFFSET; //from 0x7ffe0000 to 0x7ffe0004
-	memcpy(&tick_multiplier,(const void *)kuser,sizeof(int));
+	memcpy(&tick_multiplier, (const void *)kuser, sizeof(int));
 	tick_multiplier = tick_multiplier / Config::TICK_DIVISOR;
-	memcpy((void*)curFakeMemory.c_str(),(const void*)&tick_multiplier,sizeof(W::DWORD));
+	memcpy((void*)curFakeMemory.c_str(), (const void*)&tick_multiplier, sizeof(W::ULONG));
 	ADDRINT patchAddr = (ADDRINT)&curFakeMemory;
 	return patchAddr;
 }
 
 ADDRINT FakeReadHandler::InterruptTimePatch(ADDRINT curReadAddr, ADDRINT addr){
+	// DCD: struct KSYSTEM_TIME { ULONG LowPart; LONG High1Time; LONG High2Time; }
+	// TODO: using UINT32 can be a problem here?
 	UINT32 low_part = *(UINT32 *)(KUSER_SHARED_DATA_ADDRESS + LOW_PART_INTERRUPT_TIME_OFFSET);
 	UINT32 high_1_part = *(UINT32 *)(KUSER_SHARED_DATA_ADDRESS + HIGH_1_INTERRUPT_TIME_OFFSET);
 	UINT32 high_2_part = *(UINT32 *)(KUSER_SHARED_DATA_ADDRESS + HIGH_2_INTERRUPT_TIME_OFFSET);
-	//if these two values are differen, according to the documentation, the value contained in the low_part is not consistent
-	// then the program must retry the read (we will return the original read address)
-	if(high_1_part != high_2_part){
+	// if these two values are different, according to the documentation, the value contained
+	// in the low_part is not consistent, so the program must retry the read (we will return
+	// the original read address)
+	if (high_1_part != high_2_part) {
 		return curReadAddr;
 	}
 	//store the value of edx in a 64 bit data in order to shift this value correctly
@@ -156,12 +155,14 @@ ADDRINT FakeReadHandler::InterruptTimePatch(ADDRINT curReadAddr, ADDRINT addr){
 
 
 ADDRINT FakeReadHandler::SystemTimePatch(ADDRINT curReadAddr, ADDRINT addr){
+	// DCD see UINT32 note for KSYSTEM_TIME in InterruptTimePatch()
 	UINT32 low_part = *(UINT32 *)(KUSER_SHARED_DATA_ADDRESS + LOW_PART_SYSTEM_TIME_OFFSET);
 	UINT32 high_1_part = *(UINT32 *)(KUSER_SHARED_DATA_ADDRESS + HIGH_1_SYSTEM_TIME_OFFSET);
 	UINT32 high_2_part = *(UINT32 *)(KUSER_SHARED_DATA_ADDRESS + HIGH_2_SYSTEM_TIME_OFFSET);	
-	//if these two values are differen, according to the documentation, the value contained in the low_part is not consistent
-	// then tthe program must retry the read (we will return the original read address)
-	if(high_1_part != high_2_part){
+	// if these two values are different, according to the documentation, the value contained
+	// in the low_part is not consistent, so the program must retry the read (we will return
+	// the original read address)
+	if (high_1_part != high_2_part) {
 		return curReadAddr;
 	}
 	//store the value of edx in a 64 bit data in order to shift this value correctly
@@ -188,8 +189,6 @@ ADDRINT FakeReadHandler::SystemTimePatch(ADDRINT curReadAddr, ADDRINT addr){
 	return (ADDRINT)curFakeMemory.c_str();
 }
 
-
-
 BOOL getMemoryRange(ADDRINT address, MemoryRange& range){	
 	W::MEMORY_BASIC_INFORMATION mbi;
 	W::SIZE_T numBytes = W::VirtualQuery((W::LPCVOID)address, &mbi, sizeof(mbi));
@@ -197,8 +196,8 @@ BOOL getMemoryRange(ADDRINT address, MemoryRange& range){
 		MYERRORE("VirtualQuery failed");
 		return FALSE;
 	}
-	ADDRINT start =  (int)mbi.BaseAddress;
-	ADDRINT end = (int)mbi.BaseAddress+ mbi.RegionSize;
+	ADDRINT start = (ADDRINT)mbi.BaseAddress;
+	ADDRINT end = (ADDRINT)mbi.BaseAddress + mbi.RegionSize;
 	//get the stack base address by searching the highest address in the allocated memory containing the stack Address
 	if((mbi.State == MEM_COMMIT || mbi.Type == MEM_MAPPED || mbi.Type == MEM_IMAGE ||  mbi.Type == MEM_PRIVATE) &&
 		start <=address && address <= end){
@@ -212,7 +211,8 @@ BOOL getMemoryRange(ADDRINT address, MemoryRange& range){
 	}		
 }
 
-BOOL FakeReadHandler::CheckInCurrentDlls(UINT32 address_to_check){
+// TODO verify the fix I did for this code
+BOOL FakeReadHandler::checkInCurrentDlls(ADDRINT address_to_check){
 	W::HMODULE hMods[1024];
 	char Buffer[2048];
 	W::LPTSTR pBuffer = Buffer;
@@ -220,33 +220,42 @@ BOOL FakeReadHandler::CheckInCurrentDlls(UINT32 address_to_check){
 	BOOL isDll = FALSE;
 	W::HANDLE process = W::GetCurrentProcess(); 
 	MODULEINFO mi;
-	if( this->enumProcessModules(process, hMods, sizeof(hMods), &cbNeeded)){
-        for (size_t i = 0; i < (cbNeeded / sizeof(W::HMODULE)); i++ ){
-            this->getModuleInformation(process,hMods[i], &mi,sizeof(mi));
-		    GetModuleFileNameA(hMods[i], pBuffer,sizeof(Buffer));
-			UINT32 end_addr = (UINT32)mi.lpBaseOfDll + mi.SizeOfImage;
+	// invoke W::EnumProcessModules(hProcess, *lphModule, cp, lpcbNeeed)
+	if (this->enumProcessModules(process, hMods, sizeof(hMods), &cbNeeded)){
+        // iterate over each found module
+		for (size_t i = 0; i < (cbNeeded / sizeof(W::HMODULE)); i++ ){
+			// invoke W::GetModuleInformation(hProcess, hModule, lpmodinfo, cb)
+            this->getModuleInformation(process, hMods[i], &mi, sizeof(mi));
+		    GetModuleFileNameA(hMods[i], pBuffer, sizeof(Buffer));
+			ADDRINT end_addr = (ADDRINT)mi.lpBaseOfDll + mi.SizeOfImage;
 			ProcInfo *p = ProcInfo::getInstance();
 			BOOL isMain = FALSE;
-			PIN_LockClient();
-			IMG img = IMG_FindByAddress((UINT32)mi.lpBaseOfDll);
-			PIN_UnlockClient();
-			if(IMG_Valid(img)){
+			
+			/* DCD: "The pin client lock is obtained during the call of this API" */
+			//PIN_LockClient();
+			IMG img = IMG_FindByAddress((ADDRINT)mi.lpBaseOfDll);
+			//PIN_UnlockClient();
+			
+			if (IMG_Valid(img)) {
 				isMain = IMG_IsMainExecutable(img);
 			}
-			if(!isMain){
-				p->addLibrary(Buffer,(UINT32)mi.lpBaseOfDll,end_addr);		
+
+			if(!isMain){ // DCD what about IMG_Valid???
+				p->addLibrary(Buffer,(ADDRINT)mi.lpBaseOfDll,end_addr);
 			}
+			else continue; // DCD
+
 			FilterHandler *filterHandler = FilterHandler::getInstance();
 			if(filterHandler->isNameInFilteredLibrary(Buffer)){
-				MYINFO("Added to the filtered array the module %s\n" , Buffer);
-				filterHandler->addToFilteredLibrary(Buffer,(UINT32)mi.lpBaseOfDll,end_addr);
+				MYINFO("Adding to the filtered array the module %s\n" , Buffer);
+				filterHandler->addToFilteredLibrary(Buffer,(ADDRINT)mi.lpBaseOfDll,end_addr);
 			}
-			if(address_to_check >= (UINT32)mi.lpBaseOfDll && address_to_check <= end_addr){
+			if(address_to_check >= (ADDRINT)mi.lpBaseOfDll && address_to_check <= end_addr){
 				isDll = true;
 			}
         }
     }
-	return TRUE;
+	return isDll; // DCD: was TRUE
 }
 
 

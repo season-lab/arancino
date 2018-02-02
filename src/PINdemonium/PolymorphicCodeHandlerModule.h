@@ -24,8 +24,7 @@
 class PolymorphicCodeHandlerModule
 {
 public:
-	PolymorphicCodeHandlerModule(void);
-	~PolymorphicCodeHandlerModule(void);
+	PolymorphicCodeHandlerModule();
 	VOID inspectTrace(TRACE trace);
 	// --- getter and setter --- //
 	ADDRINT getTraceHead();

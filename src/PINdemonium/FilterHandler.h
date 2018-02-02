@@ -22,7 +22,7 @@ public:
 	VOID setFilters(const string spaceSeparedFilters);
 	//utils
 	BOOL isFilteredWrite(ADDRINT addr, ADDRINT eip);
-	void addToFilteredLibrary(std::string img_name , ADDRINT start_addr , ADDRINT end_addr);
+	void addToFilteredLibrary(std::string img_name, ADDRINT start_addr, ADDRINT end_addr);
 	BOOL isNameInFilteredLibrary(std::string img_name);
 	BOOL isFilteredLibraryInstruction(ADDRINT eip);
 
@@ -38,6 +38,5 @@ private:
 	//BOOL binarySearch (int start, int end, ADDRINT value);
 	std::vector<LibraryItem> filtered_libray;
 	std::vector<std::string> filtered_library_name;
-
 };
 

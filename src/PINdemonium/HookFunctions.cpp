@@ -10,8 +10,7 @@
 #define ISDEBUGGERPRESENT_INDEX 4
 #define RTLREALLOCATEHEAP_INDEX 5
 
-HookFunctions::HookFunctions(void)
-{
+HookFunctions::HookFunctions() {
 	this->functionsMap.insert( std::pair<string,int>("VirtualFree",VIRTUALFREE_INDEX) );
 	this->functionsMap.insert( std::pair<string,int>("CreateProcessInternalW",CREATEPROCESS_INDEX) );
 	this->functionsMap.insert( std::pair<string,int>("CreateProcessInternalA",CREATEPROCESS_INDEX) );
