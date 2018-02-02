@@ -91,7 +91,7 @@ std::vector<std::string> YaraHeuristic::analyseYara(std::string dump_to_analyse)
 }
 
 
-UINT32 YaraHeuristic::run(std::vector<std::string> paths_to_analyse){
+int YaraHeuristic::run(std::vector<std::string> paths_to_analyse){
 	std::vector<std::string> global_matched_rules;
 
 	for (std::vector<std::string>::iterator dump_to_analyse = paths_to_analyse.begin(); dump_to_analyse != paths_to_analyse.end(); ++dump_to_analyse){
@@ -114,10 +114,10 @@ UINT32 YaraHeuristic::run(std::vector<std::string> paths_to_analyse){
 
 	// DCD replaced return 0
 	if (result) {
-		return OEPFINDER_FOUND_OEP;
+		return OepFinder::FOUND_OEP;
 	}
 	else {
-		return OEPFINDER_HEURISTIC_FAIL;
+		return OepFinder::HEURISTIC_FAIL;
 	}
 }
 

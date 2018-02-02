@@ -5,5 +5,5 @@
 class PushadPopadheuristic
 {
 public:
-	UINT32 run();
+	int run();
 };

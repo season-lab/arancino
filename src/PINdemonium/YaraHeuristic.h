@@ -12,7 +12,7 @@ namespace W{
 class YaraHeuristic
 {
 public:
-	UINT32 run(std::vector<std::string> paths_to_analyse);
+	int run(std::vector<std::string> paths_to_analyse);
 
 private:
 	W::HANDLE g_hChildStd_OUT_Rd;

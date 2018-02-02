@@ -15,11 +15,11 @@
 class Heuristics
 {
 public:
-	static UINT32 longJmpHeuristic(INS ins, ADDRINT prev_ip);
-	static UINT32 entropyHeuristic();
-	static UINT32 jmpOuterSectionHeuristic(INS ins, ADDRINT prev_ip);
-	static UINT32 pushadPopadHeuristic();
-	static UINT32  yaraHeuristic(vector<string> dumps_to_analyse);
+	static int longJmpHeuristic(INS ins, ADDRINT prev_ip);
+	static int entropyHeuristic();
+	static int jmpOuterSectionHeuristic(INS ins, ADDRINT prev_ip);
+	static int pushadPopadHeuristic();
+	static int yaraHeuristic(std::vector<std::string> dumps_to_analyse);
 
 };
 

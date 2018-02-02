@@ -6,11 +6,6 @@ OepFinder::OepFinder(void){
 	this->report = Report::getInstance();
 }
 
-OepFinder::~OepFinder(void){
-}
-
-static bool start_dump = false;
-
 //update the write set manager
 VOID handleWrite(ADDRINT ip, ADDRINT start_addr, UINT32 size, void *handler){		
 	FilterHandler *filterHandler = FilterHandler::getInstance();
@@ -73,7 +68,7 @@ static VOID DoBreakpoint(const CONTEXT *ctxt, THREADID tid, ADDRINT ip)
 // - is a popad or pushad  -----> update the flag in ProcInfo
 // - broke the W xor X law  -----> trigger the heuristics and write the report
 // - update previous IP info in ProcInfo (useful for some heuristics like jumpOuterSection)
-UINT32 OepFinder::isCurrentInOEP(INS ins){
+int OepFinder::isCurrentInOEP(INS ins) { // TODO check semantics of return value!!
 	FilterHandler *filterHandler = FilterHandler::getInstance();
 	ProcInfo *proc_info = ProcInfo::getInstance();		
 	int heap_index = -1;
@@ -94,7 +89,7 @@ UINT32 OepFinder::isCurrentInOEP(INS ins){
 
 	// Ignore instructions from known libraries
 	if(proc_info->isKnownLibraryInstruction(curEip)){
-		return OEPFINDER_INS_FILTERED; 
+		return OepFinder::INS_FILTERED;
 	}
 
 	// update flags in ProcInfo if the instruction is a popad or a pushad
@@ -111,7 +106,7 @@ UINT32 OepFinder::isCurrentInOEP(INS ins){
 			//MYINFO("Skipping  Dump Number: %d Dumps to skip: %d", (int)Config::getInstance()->getDumpNumber(), config->SKIP_DUMP);
 			ADDRINT currJMPLength = ABS_ADDR_DIFF(prevIp, curEip);
 			skipCurrentDump(item, currJMPLength, config);
-			return OEPFINDER_SKIPPED_DUMP;
+			return OepFinder::SKIPPED_DUMP;
 		}
 		
 		// if not the first broken in this write set		
@@ -167,7 +162,7 @@ UINT32 OepFinder::isCurrentInOEP(INS ins){
 	// update the previous IP field in ProcInfo
 	proc_info->setPrevIp(INS_Address(ins));
 
-	return OEPFINDER_NOT_WXORX_INST;
+	return OepFinder::NOT_WXORX_INST;
 }
 
 
@@ -242,7 +237,7 @@ BOOL OepFinder::analysis(WriteInterval* item, INS ins, ADDRINT prev_ip, ADDRINT 
 	MYINFO("CURRENT WRITE SET SIZE : %d\t START : 0x%08x\t END : 0x%08x\t BROKEN-FLAG : %d", (item->getAddrEnd() - item->getAddrBegin()), item->getAddrBegin(), item->getAddrEnd(), item->getBrokenFlag());
 
 	//write the heuristic results on ile
-	return OEPFINDER_HEURISTIC_FAIL; /* TODO: type seems to be wrong */
+	return OepFinder::HEURISTIC_FAIL; /* TODO: type seems to be wrong */
 }
 
 UINT32 OepFinder::dumpAndFixIAT(ADDRINT curEip, W::DWORD pid, Config* config){

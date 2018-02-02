@@ -19,19 +19,22 @@ namespace W {
 #include "HeapModule.h"
 
 //return value for isCurrentInOEP function
-#define OEPFINDER_SKIPPED_DUMP -4;
-#define OEPFINDER_INS_FILTERED -3;
-#define OEPFINDER_HEURISTIC_FAIL -2;
-#define OEPFINDER_NOT_WXORX_INST -1;
-#define OEPFINDER_FOUND_OEP 0;
+
 
 class OepFinder
 {
 
 public:
 	OepFinder(void);
-	~OepFinder(void);
-	UINT32 isCurrentInOEP(INS ins);
+	int isCurrentInOEP(INS ins);
+
+	enum OepFinderCode {
+		SKIPPED_DUMP = -4,
+		INS_FILTERED = -3,
+		HEURISTIC_FAIL = -2,
+		NOT_WXORX_INST = -1,
+		FOUND_OEP = 0
+	};
 
 private:
 	//check if the current instruction is a pushad or a popad

@@ -1,8 +1,8 @@
 #include "EntropyHeuristic.h"
 
-float threshold=0.2f;
+#define ENTROPY_THRESHOLD	0.2f
 
-UINT32 EntropyHeuristic::run(){
+int EntropyHeuristic::run(){
 	ProcInfo *proc_info = ProcInfo::getInstance();
 	float entropy_value = proc_info->GetEntropy();
 	float initial_entropy = proc_info->getInitialEntropy();
@@ -12,7 +12,7 @@ UINT32 EntropyHeuristic::run(){
 	MYINFO("CURRENT ENTROPY IS %f" , entropy_value);
 	MYINFO("ENTROPY DIFFERERNCE IS %f" , difference);
 	
-	bool result = (difference > threshold);
+	bool result = (difference > ENTROPY_THRESHOLD);
 
 	/* TODO: as of now Pin would need an ad-hoc internal exception handler */
 	//try{
@@ -24,9 +24,9 @@ UINT32 EntropyHeuristic::run(){
 	//}
 
 	if (result){
-		return OEPFINDER_FOUND_OEP;
+		return OepFinder::FOUND_OEP;
 	}
-	else return OEPFINDER_HEURISTIC_FAIL;
+	else return OepFinder::HEURISTIC_FAIL;
 }
 
 

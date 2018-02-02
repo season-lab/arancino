@@ -2,13 +2,12 @@
 #include "porting.h"
 
 //specify the range of the jump when it is considered a long jump or not
-const ADDRINT JMP_THRESHOLD =  0x200;
+#define JMP_THRESHOLD	0x200
 
-UINT32 LongJumpHeuristic::run(INS ins, ADDRINT prev_ip){
+int LongJumpHeuristic::run(INS ins, ADDRINT prev_ip){
 	bool result = false;
 	//filter out the improper values 
-	if (prev_ip > 0) {
-		
+	if (prev_ip > 0) {	
 		// get the current IP
 		ADDRINT ip = INS_Address(ins);
 		
@@ -30,14 +29,13 @@ UINT32 LongJumpHeuristic::run(INS ins, ADDRINT prev_ip){
 		report_dump.addHeuristic(long_jmp_heur);
 		//}catch (const std::out_of_range&){
 		//	MYERRORE("Problem creating ReportLongJump report");
-		//}
-				
+		//}		
 	}
 
 	if (result) {
-		return OEPFINDER_FOUND_OEP;
+		return OepFinder::FOUND_OEP;
 	} else {
-		return OEPFINDER_HEURISTIC_FAIL;
+		return OepFinder::HEURISTIC_FAIL;
 	}
 
 }

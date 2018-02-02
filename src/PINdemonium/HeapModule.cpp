@@ -1,5 +1,6 @@
 #include "HeapModule.h"
 #include "porting.h"
+#include "OepFinder.h"
 
 HeapModule* HeapModule::instance = 0;
 
@@ -38,7 +39,7 @@ UINT32 HeapModule::checkHeapWxorX(WriteInterval* item, ADDRINT curEip, int dumpA
 
 		if (!Helper::existFile(dump_path)) {
 			MYINFO("[CRITICAL ERROR] Dump file not found\n");
-			return OEPFINDER_HEURISTIC_FAIL;
+			return OepFinder::HEURISTIC_FAIL;
 		}
 
 		// and convert it into the WCHAR representation 

@@ -6,5 +6,5 @@
 class EntropyHeuristic
 {
 public:
-	UINT32 run();
+	int run();
 };

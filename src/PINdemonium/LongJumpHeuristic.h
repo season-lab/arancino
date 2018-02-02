@@ -7,5 +7,5 @@
 class LongJumpHeuristic
 {
 public:
-	UINT32 run(INS ins , ADDRINT prev_ip);
+	int run(INS ins, ADDRINT prev_ip);
 };

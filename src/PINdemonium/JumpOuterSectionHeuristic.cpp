@@ -1,8 +1,7 @@
 #include "JumpOuterSectionHeuristic.h"
 #include "ReportJumpOuterSection.h"
 
-
-UINT32 JumpOuterSection::run(INS ins, ADDRINT prev_ip){
+int JumpOuterSection::run(INS ins, ADDRINT prev_ip){
 	bool result= false;
 	if (prev_ip > 0) {
 		ProcInfo *proc_info = ProcInfo::getInstance();
@@ -27,9 +26,9 @@ UINT32 JumpOuterSection::run(INS ins, ADDRINT prev_ip){
 		//}	
 	}
 	if(result == true){
-		return OEPFINDER_FOUND_OEP
+		return OepFinder::FOUND_OEP;
 	}else{
-		return OEPFINDER_HEURISTIC_FAIL
+		return OepFinder::HEURISTIC_FAIL;
 	}
 	
 	

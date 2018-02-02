@@ -5,6 +5,6 @@ class JumpOuterSection
 
 {
 public:
-	UINT32 JumpOuterSection::run(INS ins, ADDRINT prev_ip);
+	int JumpOuterSection::run(INS ins, ADDRINT prev_ip);
 };
 
