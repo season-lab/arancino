@@ -162,7 +162,7 @@ int OepFinder::isCurrentInOEP(INS ins) { // TODO check semantics of return value
 	// update the previous IP field in ProcInfo
 	proc_info->setPrevIp(INS_Address(ins));
 
-	return OepFinder::NOT_WXORX_INST;
+	return OepFinder::NOT_WXORX_INST; // TODO I'm not sold on this one, seems wrong
 }
 
 

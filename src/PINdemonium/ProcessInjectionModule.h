@@ -17,7 +17,7 @@ public:
 
 	VOID AddInjectedWrite(ADDRINT start, UINT32 size, W::DWORD  );
 	VOID CheckInjectedExecution(W::DWORD pid );
-	VOID setInsideCreateProcess();
+	VOID setInsideCreateProcess(); // used by hook for CreateProcess
 	// 
 	
 private:

@@ -170,7 +170,7 @@ static VOID onThreadStart(THREADID, CONTEXT *ctxt, INT32, VOID *){
 	ProcInfo *pInfo = ProcInfo::getInstance();
 	pInfo->addThreadStackAddress(stackBase);
 	pInfo->addThreadTebAddress();
-	//MYINFO("-----------------a NEW Thread started!--------------------\n");
+	MYINFO("-----------------a NEW Thread started!--------------------\n");
 }
 
 // - if the flag is pecified start pin as launched with the flag appdebug

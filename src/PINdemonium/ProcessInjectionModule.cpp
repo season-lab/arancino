@@ -107,7 +107,6 @@ string ProcessInjectionModule::DumpRemoteWriteInterval(WriteInterval* item,W::DW
 
 }
 
-
 VOID ProcessInjectionModule::setInsideCreateProcess(){
 	this->insideCreateProcess = true;
 }
