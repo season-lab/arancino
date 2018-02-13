@@ -460,7 +460,7 @@ BOOL ProcInfo::getMemoryRange(ADDRINT address, MemoryRange& range){
 	W::MEMORY_BASIC_INFORMATION mbi;
 	W::SIZE_T numBytes = W::VirtualQuery((W::LPCVOID)address, &mbi, sizeof(mbi));
 	if(numBytes == 0){
-		MYERRORE("VirtualQuery failed");
+		MYERROR("VirtualQuery failed");
 		return FALSE;
 	}
 	ADDRINT start = (ADDRINT)mbi.BaseAddress;
@@ -476,7 +476,7 @@ BOOL ProcInfo::getMemoryRange(ADDRINT address, MemoryRange& range){
 	}
 	else{
 		/* TODO check this from calc.exe run */
-		MYERRORE("Address %08x  not inside mapped memory from %08x -> %08x or Type/State not correct ",address,start,end);
+		MYERROR("Address %08x  not inside mapped memory from %08x -> %08x or Type/State not correct ",address,start,end);
 		MYINFO("state %08x   %08x",mbi.State,mbi.Type);
 		return  FALSE;
 	}		
@@ -637,14 +637,14 @@ BOOL ProcInfo::addProcessHeapsAndCheckAddress(ADDRINT eip){
 	//getting the number of ProcessHeaps
 	W::DWORD NumberOfHeaps = W::GetProcessHeaps(0, NULL);
     if (NumberOfHeaps == 0) {
-		MYERRORE("Error in retrieving number of Process Heaps");
+		MYERROR("Error in retrieving number of Process Heaps");
 		return FALSE; // return isEipDiscoveredHere;
 	}
 	//Allocating space for the ProcessHeaps Addresses
 	W::SIZETMult(NumberOfHeaps, sizeof(*aHeaps), &BytesToAllocate);
 	aHeaps = (W::PHANDLE)W::HeapAlloc(W::GetProcessHeap(), 0, BytesToAllocate);
 	 if ( aHeaps == NULL) {
-		MYERRORE("HeapAlloc failed to allocate space");
+		MYERROR("HeapAlloc failed to allocate space");
 		return FALSE; // return isEipDiscoveredHere;
 	} 
 

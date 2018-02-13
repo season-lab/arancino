@@ -193,7 +193,7 @@ BOOL getMemoryRange(ADDRINT address, MemoryRange& range){
 	W::MEMORY_BASIC_INFORMATION mbi;
 	W::SIZE_T numBytes = W::VirtualQuery((W::LPCVOID)address, &mbi, sizeof(mbi));
 	if(numBytes == 0){
-		MYERRORE("VirtualQuery failed");
+		MYERROR("VirtualQuery failed");
 		return FALSE;
 	}
 	ADDRINT start = (ADDRINT)mbi.BaseAddress;
@@ -206,7 +206,7 @@ BOOL getMemoryRange(ADDRINT address, MemoryRange& range){
 		return TRUE;
 	}
 	else{
-		MYERRORE("Address %08x  not inside mapped memory from %08x -> %08x or Type/State not correct ",address,start,end);
+		MYERROR("Address %08x  not inside mapped memory from %08x -> %08x or Type/State not correct ",address,start,end);
 		return  FALSE;
 	}		
 }

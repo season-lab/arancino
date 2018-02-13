@@ -38,14 +38,14 @@ UINT32 ScyllaWrapperInterface::launchScyllaDumpAndFix(W::DWORD pid, ADDRINT curE
 	scyllaArgsStream << call_plugin_flag << " ";
 	scyllaArgsStream << plugin_full_path << " ";
 	std::string scyllaArgs = scyllaArgsStream.str();	
-	MYINFO("Scylla cmd %s %s",scylla.c_str(),scyllaArgs.c_str());
+	MYINFO("[Scylla] cmd %s %s",scylla.c_str(),scyllaArgs.c_str());
 	//Running external Scyllatest.exe executable
 	W::STARTUPINFO si ={0};
 	W::PROCESS_INFORMATION pi ={0};
 	si.cb=sizeof(si);
 
 	if(!W::CreateProcess(scylla.c_str(),(char *)scyllaArgs.c_str(),NULL,NULL,FALSE,0,NULL,NULL,&si,&pi)){
-		MYERRORE("(INITFUNCTIONCALL)Can't launch Scylla");
+		MYERROR("(INITFUNCTIONCALL) Can't launch Scylla");
 		return ScyllaWrapperInterface::ERROR_LAUNCH;
 	}
 	W::GetExitCodeProcess(pi.hProcess, &exitCode);
@@ -54,14 +54,16 @@ UINT32 ScyllaWrapperInterface::launchScyllaDumpAndFix(W::DWORD pid, ADDRINT curE
 	W::CloseHandle(pi.hThread);
 
 	if(!Helper::existFile(outputFile)){
-		MYERRORE("Scylla Can't dump the process");
+		MYERROR("[Scylla] Can't dump the process");
 		return exitCode;
 	}
-	if(Helper::existFile(reconstructed_imports_file)){//exist file containing imported functions
+
+	// check for file containing imported functions 
+	if (Helper::existFile(reconstructed_imports_file)) {
 		addImportFunctionToDumpReport(reconstructed_imports_file);
-	
 	}
-	MYINFO("Scylla Finished");
+
+	MYINFO("[Scylla] Finished");
 	return ScyllaWrapperInterface::SUCCESS_FIX;
 }
 
@@ -80,7 +82,7 @@ void ScyllaWrapperInterface::addImportFunctionToDumpReport(string reconstructed_
 		imports_number++;
 		imports_report.push_back(current_import);
 		//}catch (const std::out_of_range& ){ //handle possible missing information inside the file
-		//	MYERRORE("Problem adding function to the imported function report line: %s",line.c_str());
+		//	MYERROR("Problem adding function to the imported function report line: %s",line.c_str());
 		//}	
 	}
 	
@@ -92,13 +94,14 @@ void ScyllaWrapperInterface::addImportFunctionToDumpReport(string reconstructed_
 	report_dump.setNumberOfImports(imports_number);
 	//}
 	//catch (const std::out_of_range& ){
-	//	MYERRORE("Problem creating ReportImportedFunction report");
+	//	MYERROR("Problem creating ReportImportedFunction report");
 	//}
 
 }
 
 //load scylla dll and expose some of its functions as public attribute of the class
 //we have to use loadLibrary and GetProcAddress because PIN doesn't support external libraries
+// TODO DCD: should work with Pin 3.5, we can leave it like this?
 void ScyllaWrapperInterface::loadScyllaLibary(){
 	//init
 	this->hScyllaWrapper = 0;

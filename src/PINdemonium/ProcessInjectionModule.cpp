@@ -101,7 +101,7 @@ string ProcessInjectionModule::DumpRemoteWriteInterval(WriteInterval* item,W::DW
 		return path;
 	}
 	else{
-		MYERRORE("Error reading injected process %d  memory %s",pid,W::GetLastError());
+		MYERROR("Error reading injected process %d  memory %s",pid,W::GetLastError());
 		return "";
 	}	
 

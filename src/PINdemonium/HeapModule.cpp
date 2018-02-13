@@ -28,14 +28,14 @@ UINT32 HeapModule::checkHeapWxorX(WriteInterval* item, ADDRINT curEip, int dumpA
 
 		// get the name of the last dump from the Config object 
 		Config *config = Config::getInstance();
-		string dump_path = config->getWorkingDumpPath();
+		string dump_path = config->getFixedDumpPath();
 
-		if (dumpAndFixResult != 0){
-			dump_path = dump_path + "_dmp";
+		if (dumpAndFixResult != 0) {
+			dump_path = dump_path + "_dmp"; // DCD check this
 		}
 
 		if (!Helper::existFile(dump_path)) { // this is the case in which we have a not working dump but we want to add anyway the .heap 
-			dump_path = config->getNotWorkingDumpPath();
+			dump_path = config->getUnfixableDumpPath();
 		}
 
 		if (!Helper::existFile(dump_path)) {

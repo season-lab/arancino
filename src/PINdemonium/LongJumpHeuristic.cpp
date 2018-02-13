@@ -28,7 +28,7 @@ int LongJumpHeuristic::run(INS ins, ADDRINT prev_ip){
 		ReportObject* long_jmp_heur = new ReportLongJump(result,prev_ip, diff);
 		report_dump.addHeuristic(long_jmp_heur);
 		//}catch (const std::out_of_range&){
-		//	MYERRORE("Problem creating ReportLongJump report");
+		//	MYERROR("Problem creating ReportLongJump report");
 		//}		
 	}
 

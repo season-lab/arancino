@@ -25,7 +25,7 @@ std::string YaraHeuristic::ReadFromPipe(W::PROCESS_INFORMATION piProcInfo) {
 	} while (bSuccess);
 
 	if (!bSuccess) {
-		MYERRORE("Error reading from Yara pipe");
+		MYERROR("Error reading from Yara pipe");
 	}
 
 	return out ;
@@ -65,13 +65,13 @@ std::vector<std::string> YaraHeuristic::analyseYara(std::string dump_to_analyse)
 
     // Create a pipe for the child process's STDOUT. 
     if ( ! W::CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &sa, 0) ) {
-		MYERRORE("Error creating Pipe for Yara");
+		MYERROR("Error creating Pipe for Yara");
         return matched_rules; // empty
     }
 
     // Ensure the read handle to the pipe for STDOUT is not inherited
     if ( ! W::SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0) ){
-		MYERRORE("Error creating Pipe for Yara");
+		MYERROR("Error creating Pipe for Yara");
         return matched_rules; // empty 
     }
 
@@ -85,7 +85,7 @@ std::vector<std::string> YaraHeuristic::analyseYara(std::string dump_to_analyse)
 		matched_rules = parseYaraOutput(ReadFromPipe(piResults));
 		//MYINFO("Yara raw output result %s",raw_output.c_str()); // was: raw_output=ReadFromPipe(piResults);
 	} else{
-		MYERRORE("error launching Yara");
+		MYERROR("error launching Yara");
 	}
 	return matched_rules;
 }
@@ -109,7 +109,7 @@ int YaraHeuristic::run(std::vector<std::string> paths_to_analyse){
 	report_dump.addHeuristic(yara_heur);
 	//}
 	//catch (const std::out_of_range& ){
-	//	MYERRORE("Problem creating ReportYaraRules report");
+	//	MYERROR("Problem creating ReportYaraRules report");
 	//}
 
 	// DCD replaced return 0
@@ -155,7 +155,7 @@ BOOL YaraHeuristic::launchYara(std::string yara_path, std::string yara_rules_pat
 									  &si, piResults);
 
 	if (!result) {
-		MYERRORE("Can't launch Yara Error %d",W::GetLastError());
+		MYERROR("Can't launch Yara Error %d",W::GetLastError());
 		return false;
 	}
 

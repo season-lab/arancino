@@ -22,7 +22,7 @@ int JumpOuterSection::run(INS ins, ADDRINT prev_ip){
 		report_dump.addHeuristic(long_jmp_heur);
 		//}
 		//catch (const std::out_of_range& ){
-		//	MYERRORE("Problem creating ReportJumpOuterSection report");
+		//	MYERROR("Problem creating ReportJumpOuterSection report");
 		//}	
 	}
 	if(result == true){

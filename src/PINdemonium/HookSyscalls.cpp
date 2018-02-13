@@ -245,7 +245,7 @@ void HookSyscalls::NtWriteVirtualMemoryHook(syscall_t *sc, CONTEXT *ctx, SYSCALL
 		ProcessInjectionModule::getInstance()->AddInjectedWrite((ADDRINT)address_to_write, number_of_bytes_to_write, injected_pid);
 	}
 	//if the target address of the write is inside a protected section modify it
-	if (Config::getInstance()->ANTIEVASION_MODE_SWRITE && ProcInfo::getInstance()->isInsideProtectedSection((ADDRINT)address_to_write)) {
+	if (Config::getInstance()->DBI_SHIELD_SWRITE && ProcInfo::getInstance()->isInsideProtectedSection((ADDRINT)address_to_write)) {
 		MYTEST("[POSSIBLE EVASIVE BEHAVIOR] Detected write on protected memory region ( f.i. NTDLL .text ) \n");
 		ADDRINT new_address = (ADDRINT)malloc(number_of_bytes_to_write);
 		PIN_SetSyscallArgument(ctx, SYSCALL_STANDARD_IA32_WINDOWS_FAST, 1, new_address);

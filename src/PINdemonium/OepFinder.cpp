@@ -243,12 +243,12 @@ BOOL OepFinder::analysis(WriteInterval* item, INS ins, ADDRINT prev_ip, ADDRINT 
 
 UINT32 OepFinder::dumpAndFixIAT(ADDRINT curEip, W::DWORD pid, Config* config){
 	// WAS: Getting Current process PID and Base Address (DCD: base address?)
-	string outputFile = config->getWorkingDumpPath();
+	string outputFile = config->getFixedDumpPath();
 	string reconstructed_imports_file  = config->getCurrentReconstructedImportsPath();
 	string tmpDump = outputFile + "_dmp";
 	//std::wstring tmpDump_w = std::wstring(tmpDump.begin(), tmpDump.end());
-	string plugin_full_path = config->PLUGIN_FULL_PATH;	
-	MYINFO("Calling scylla with : Current PID %d, Current output file dump %s, Plugin %d",pid, outputFile.c_str(), config->PLUGIN_FULL_PATH.c_str());
+	string plugin_full_path = config->UNPACKING_SCYLLA_PLUGINS_PATH;	
+	MYINFO("Calling scylla with : Current PID %d, Current output file dump %s, Plugin %d",pid, outputFile.c_str(), config->UNPACKING_SCYLLA_PLUGINS_PATH.c_str());
 	
 	// -------- Scylla launched as an exe --------	
 	ScyllaWrapperInterface *sc = ScyllaWrapperInterface::getInstance();	
@@ -256,12 +256,12 @@ UINT32 OepFinder::dumpAndFixIAT(ADDRINT curEip, W::DWORD pid, Config* config){
 											   curEip,
 											   outputFile,
 											   tmpDump,
-											   config->CALL_PLUGIN_FLAG,
-											   config->PLUGIN_FULL_PATH,
+											   config->UNPACKING_CALL_PLUGIN_FLAG,
+											   config->UNPACKING_SCYLLA_PLUGINS_PATH,
 											   reconstructed_imports_file);
 	if (result != ScyllaWrapperInterface::SUCCESS_FIX) {
-		MYERRORE("Scylla execution: Failed with error %d", result);
-		return result;
+		MYERROR("Scylla execution: Failed with error %d", result);
+		return result; // either Scylla's exit code or ScyllaWrapperInterface::ERROR_LAUNCH
 	}
 
 	MYINFO("Scylla execution: Success");

@@ -5,7 +5,7 @@
 #include "OepFinder.h"
 #include "Report.h"
 #include <time.h>
-#include  "Debug.h"
+#include "Debug.h"
 #include "Config.h"
 #include "FilterHandler.h"
 #include "HookFunctions.h"
@@ -148,7 +148,7 @@ void imageLoadCallback(IMG img,void *){
 void instrumentInstruction(INS ins, void *v){
 	Config *config = Config::getInstance();
 	
-	if(config->ANTIEVASION_MODE){
+	if(config->DBI_SHIELD_MODE){
 		thider.addInstrumentation(ins);
 	}
 	
@@ -181,42 +181,42 @@ void initDebug(){
 	PIN_SetDebugMode(&mode);
 }
 
-// - set the option for the current run
+// set options for the current run
 void ConfigureTool(){	
-	Config *config = Config::getInstance();
-	config->ANTIEVASION_MODE = KnobAntiEvasion.Value();
-	config->ANTIEVASION_MODE_INS_PATCHING = KnobAntiEvasionINSpatcher.Value();
-	config->ANTIEVASION_MODE_SREAD = KnobAntiEvasionSuspiciousRead.Value();
-	config->ANTIEVASION_MODE_SWRITE = KnobAntiEvasionSuspiciousWrite.Value();
+	Config *config = Config::getInstance(); // triggers JSON parser
+
+	config->DBI_SHIELD_MODE = KnobAntiEvasion.Value();
+	config->DBI_SHIELD_INS_PATCHING = KnobAntiEvasionINSpatcher.Value();
+	config->DBI_SHIELD_SREAD = KnobAntiEvasionSuspiciousRead.Value();
+	config->DBI_SHIELD_SWRITE = KnobAntiEvasionSuspiciousWrite.Value();
 	
 	config->UNPACKING_MODE = KnobUnpacking.Value();
 	config->INTER_WRITESET_ANALYSIS_ENABLE = KnobInterWriteSetAnalysis.Value() ? true : false;	
-	config->ADVANCED_IAT_FIX = KnobAdvancedIATFixing.Value();
-	config->POLYMORPHIC_CODE_PATCH = KnobPolymorphicCodePatch.Value();
-	config->NULLIFY_UNK_IAT_ENTRY = KnobNullyfyUnknownIATEntry.Value();
+	config->UNPACKING_ADVANCED_IAT_FIX = KnobAdvancedIATFixing.Value();
+	config->UNPACKING_POLYMORPHIC_CODE_PATCH = KnobPolymorphicCodePatch.Value();
+	config->UNPACKING_NULLIFY_UNKNOWN_IAT_ENTRY = KnobNullyfyUnknownIATEntry.Value();
 	config->SKIP_DUMP = KnobSkipDump.Value();
-	if(KnobInterWriteSetAnalysis.Value() >= 1 && KnobInterWriteSetAnalysis.Value() <= Config::MAX_JUMP_INTER_WRITE_SET_ANALYSIS ){
+
+	if (config->INTER_WRITESET_ANALYSIS_ENABLE) {
 		config->WRITEINTERVAL_MAX_NUMBER_JMP = KnobInterWriteSetAnalysis.Value();
+		if (config->WRITEINTERVAL_MAX_NUMBER_JMP <= Config::MAX_JUMP_INTER_WRITE_SET_ANALYSIS) {
+			MYWARN("Invalid number of jumps to track, set to default value: 2\n");
+			config->WRITEINTERVAL_MAX_NUMBER_JMP = 2;
+		}
 	}
-	else{
-		//MYWARN("Invalid number of jumps to track, se to default value: 2\n");
-		config->WRITEINTERVAL_MAX_NUMBER_JMP = 2; // default value is 2 if we have invalid value 
-	}
-	//get the selected plugin or return an erro if it doen't exist
-	if(KnobPluginSelector.Value().compare("") != 0){
-		config->CALL_PLUGIN_FLAG = true;
-		config->PLUGIN_FULL_PATH = config->getScyllaPluginsPath() + KnobPluginSelector.Value();
-		W::DWORD fileAttrib = W::GetFileAttributes(config->PLUGIN_FULL_PATH.c_str());
+
+	// get the selected plugin
+	config->UNPACKING_CALL_PLUGIN_FLAG = !KnobPluginSelector.Value().empty();
+	if (config->UNPACKING_CALL_PLUGIN_FLAG) {
+		config->UNPACKING_SCYLLA_PLUGINS_PATH = config->getScyllaPluginsPath() + KnobPluginSelector.Value();
+		W::DWORD fileAttrib = W::GetFileAttributes(config->UNPACKING_SCYLLA_PLUGINS_PATH.c_str());
 		//file doesn't exist
 		if(fileAttrib == 0xFFFFFFFF){
-			printf("[ERROR] THE SELECTED PLUGIN DOES NOT EXIST!\n\n");
+			MYERROR("[ERROR] THE SELECTED SCYLLA PLUGIN DOES NOT EXIST!\n");
 			exit(-1);
 		}
 	}
-	//don't call any plugin if it isn't selected
-	else{
-		config->CALL_PLUGIN_FLAG = false;
-	}
+
 	//set filtered write
 	FilterHandler::getInstance()->setFilters(config->getFilteredWrites());
 }
@@ -258,7 +258,7 @@ int main(int argc, char * argv[]){
 	// parse KNOB args and JSON config file
 	printf("[INFO] Configuring Pintool\n");
 	ConfigureTool();
-	if (Config::getInstance()->POLYMORPHIC_CODE_PATCH) {
+	if (Config::getInstance()->UNPACKING_POLYMORPHIC_CODE_PATCH) {
 		TRACE_AddInstrumentFunction(instrumentTrace,0);
 	}
 

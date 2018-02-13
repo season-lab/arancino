@@ -16,12 +16,12 @@ void PINshield::addInstrumentation(INS ins) {
 	}
 
 	// 1 - single instruction detection
-	if (config->ANTIEVASION_MODE_INS_PATCHING && this->evasionPatcher.patchDispatcher(ins, addr)) {
+	if (config->DBI_SHIELD_INS_PATCHING && this->evasionPatcher.patchDispatcher(ins, addr)) {
 		return;
 	}
 
 	// 2 - check for memory reads at addresses that the application should not be aware of
-	if (config->ANTIEVASION_MODE_SREAD) {
+	if (config->DBI_SHIELD_SREAD) {
 		for (UINT32 op = 0; op<INS_MemoryOperandCount(ins); op++) {
 			if (INS_MemoryOperandIsRead(ins, op)) {
 				// initialize FakeReadHandler on the first read we ever see
@@ -45,7 +45,7 @@ void PINshield::addInstrumentation(INS ins) {
 	}
 
 	// 3 - check for memory reads at addresses that the application should not be access
-	if (config->ANTIEVASION_MODE_SWRITE) {
+	if (config->DBI_SHIELD_SWRITE) {
 		for (UINT32 op = 0; op<INS_MemoryOperandCount(ins); op++) {
 			if (INS_MemoryOperandIsWritten(ins, op) && INS_IsMov(ins)) {
 				REG writeReg = GetScratchReg(op);

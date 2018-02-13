@@ -26,9 +26,9 @@ public:
 	//getter
 	string getBasePath();
 	string getCurrentDumpPath();
-	string getWorkingDumpPath();
+	string getFixedDumpPath();
 	string getCurrentReconstructedImportsPath();
-	string getNotWorkingDumpPath();
+	string getUnfixableDumpPath();
 	string getYaraResultPath();
 	string getReportPath();
 	string getScyllaDumperPath();
@@ -42,7 +42,7 @@ public:
 	void incrementDumpNumber();
 	void Config::closeLogFile();
 	//void Config::writeOnTimeLog(string s);
-	void setWorking (int working);
+	void setWorking (int dumpAndFixIATstatus);
 	void setNewWorkingDirectory(bool isInjection);
 	string getWorkingDir();
 	string getHeapDir();
@@ -53,23 +53,27 @@ public:
 	//--------------------------Command line Tuning Flags----------------------------
 	static const bool  ATTACH_DEBUGGER;
 	static const UINT32 MAX_JUMP_INTER_WRITE_SET_ANALYSIS;
+	
 	//Tunable from command line
 	bool INTER_WRITESET_ANALYSIS_ENABLE; //Trigger the analysis inside a WriteSet in which WxorX is already broken if a Long JMP is encontered (MPress packer)
 	UINT32 WRITEINTERVAL_MAX_NUMBER_JMP;
 	UINT32 SKIP_DUMP;
-	//mode of operation
-	bool UNPACKING_MODE;
-    bool ANTIEVASION_MODE;
-	
-	bool ANTIEVASION_MODE_INS_PATCHING;
-	bool ANTIEVASION_MODE_SREAD;
-	bool ANTIEVASION_MODE_SWRITE;
 
-	bool ADVANCED_IAT_FIX;
-	bool POLYMORPHIC_CODE_PATCH;
-	bool NULLIFY_UNK_IAT_ENTRY;
-	string PLUGIN_FULL_PATH;
-	bool CALL_PLUGIN_FLAG;
+	// modes of operation
+	bool UNPACKING_MODE;
+    bool DBI_SHIELD_MODE;
+	
+	// PinShield-specific flags
+	bool DBI_SHIELD_INS_PATCHING;
+	bool DBI_SHIELD_SREAD;
+	bool DBI_SHIELD_SWRITE;
+
+	// PINDemonium-specific flags
+	bool UNPACKING_ADVANCED_IAT_FIX; // TODO unused?
+	bool UNPACKING_POLYMORPHIC_CODE_PATCH;
+	bool UNPACKING_NULLIFY_UNKNOWN_IAT_ENTRY; // TODO unused?
+	string UNPACKING_SCYLLA_PLUGINS_PATH; // full path
+	bool UNPACKING_CALL_PLUGIN_FLAG;
 
 	//Timing attack configurations
 	static const UINT32 TIMEOUT_TIMER_SECONDS;
@@ -81,42 +85,45 @@ public:
 	static const UINT32 SYSTEM_TIME_DIVISOR;
 
 		
-
 private:
 	Config::Config();
 	static Config* instance;
 	FILE *log_file;
 	FILE *test_file;
-	string pin_dir;
-	string working_dir;
-	string base_path;
-	string not_working_path;
-	string working_path;        //Path of the final (IAT fixed) Dump
-	string cur_list_path;		 //Path of the list of the detected function
-	string heap_dir;
-	UINT32 dump_number;
-	string getCurDateAndTime();
-	int numberOfBadImports;
-	void loadJson(string path);
-	int working;
 
-	//files and paths
-	string dependecies_path;
+	// initialized via preprocessor directive PIN_FOLDER
+	string pin_dir;
+
+	// starts from 0
+	UINT32 dump_number;
+
+	// parsed from JSON config file
 	string results_path;
-	string plugins_path; 
 	string log_filename;
 	string test_filename;
 	string report_filename;
+	string filtered_writes;		// Which write instructions are filtered (possible values: 'stack teb')
+	string scylla_dumper_path;
+	string scylla_plugins_path;
+	string scylla_wrapper_path;
 	string yara_exe_path;
 	string yara_rules_path;
-	string dep_scylla_dumper_path;
-	string dep_scylla_wrapper_path;
-	string not_working_directory;
-	//command line tuning flags
-	string filtered_writes;        //Which write instructions are filtered(possible values: 'stack teb')
-	//UINT32 timeout;
 
+	/* computed from other variables */
+	string base_path;				// results_path + getCurDateAndTime()
+	string working_dir;				// base_path + {"injection_", "dump_"} + dump_number
+	string fixed_dump_path;			// working_dir + getProcName() + "_" + dump_number + ".exe"
+	string unfixable_dump_path;		// working_dir + "NW_" + getProcName() + "_" + dump_number + ".exe" 
+	string heap_dir;				// base_path + "\\HEAP"
+	
+	//UINT32 timeout;				// DCD disabled by the authors
+	//int working;					// DCD commented out as was initialized to -1 and then update by setWorking() but never read
+	//string not_working_directory; // DCD became unused after refactoring or was unused before?
+	//string cur_list_path;			// Path of the list of the detected function // DCD unused
+	//int numberOfBadImports;		// DCD unused
 
-
+	// helper methods
+	string getCurDateAndTime();
+	void loadJson(string path);
 };
 

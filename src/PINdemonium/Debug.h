@@ -20,10 +20,10 @@
 #endif
 
 #ifdef VERBOSE
-#define MYERRORE(fmt, ...) \
+#define MYERROR(fmt, ...) \
 	do { if (ERROR_BUILD) fprintf(Config::getInstance()->getLogFile(),"[ERROR](%s) "fmt"\n",__FILENAME__, __VA_ARGS__);fflush(Config::getInstance()->getLogFile()); } while (0)
 #else
-#define MYERRORE(fmt,...)
+#define MYERROR(fmt,...)
 #endif
 
 #ifdef VERBOSE
