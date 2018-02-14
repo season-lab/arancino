@@ -1,11 +1,12 @@
 {
 	"results_path": "C:\\Arancino\\results",
-	"dependecies_path": "C:\\Arancino\\dependencies",
-	"plugins_path": "C:\\Arancino\\scylla-plugins",
 	"log_filename": "main.log",
 	"test_filename": "test.log",
 	"report_filename": "report.json",
 	"filtered_writes": "",
 	"yara_exe_path": "C:\\Arancino\\dependencies\\yara\\yara.exe",
-	"yara_rules_path": "C:\\Arancino\\dependencies\\yara\\rules.yar"
+	"yara_rules_path": "C:\\Arancino\\dependencies\\yara\\rules.yar",
+	"scylla_dumper_path": "C:\\Arancino\\dependencies\\scylla\\ScyllaDump.exe",
+	"scylla_plugins_path": "C:\\Arancino\\dependencies\\scylla\\plugins",
+	"scylla_wrapper_path": "C:\\Arancino\\dependencies\\scylla\\ScyllaWrapper32.dll"
 }
